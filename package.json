@@ -1,0 +1,1 @@
+{"name":"goshkow-vacancy-landing","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.mjs","check":"node --check script.js && node --check demo-data.js"}}
