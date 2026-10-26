@@ -1,4 +1,4 @@
-import { NODES, EDGES, SCENARIO_IDS, scenarioLabel, buildRun, DOKKY_QUESTIONS, findQuestion, APP_FLOW, APP_DIFF, INTRO_NODES, INTRO_EDGES, INTRO_RUN } from './demo-data.js?v=20261026-cv';
+import { NODES, EDGES, SCENARIO_IDS, scenarioLabel, buildRun, DOKKY_QUESTIONS, findQuestion, APP_FLOW, APP_DIFF, INTRO_NODES, INTRO_EDGES, INTRO_RUN } from './demo-data.js?v=20261026-pre';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -1190,8 +1190,41 @@ function initCopy() {
   });
 }
 
+/* прелоадер как на лендинге Докки: ждём шрифты и картинки, чтобы первый экран не собирался на глазах */
+const imageReady = img => (img.complete ? Promise.resolve() : new Promise(resolve => {
+  img.addEventListener('load', resolve, { once: true });
+  img.addEventListener('error', resolve, { once: true });
+}));
+// каждая задача ограничена по времени, чтобы одна зависшая не держала экран
+const within = (task, ms) => Promise.race([Promise.resolve(task).catch(() => {}), new Promise(resolve => setTimeout(resolve, ms))]);
+
+async function preload() {
+  const root = document.documentElement;
+  const loader = document.querySelector('[data-preloader]');
+  const bar = loader?.querySelector('[data-preloader-bar]');
+  const started = performance.now();
+  const tasks = [
+    document.fonts ? Promise.all([document.fonts.load('600 16px Unbounded', 'Иван Агошков 0123456789'), document.fonts.load('500 16px Montserrat', 'Докки'), document.fonts.ready]) : null,
+    ...[...document.images].map(img => { img.loading = 'eager'; return imageReady(img); })
+  ].filter(Boolean).map(task => within(task, 8000));
+  let done = 0;
+  tasks.forEach(task => task.then(() => {
+    done += 1;
+    bar?.style.setProperty('--p', String(done / tasks.length));
+  }));
+  await Promise.all(tasks);
+  // короткая загрузка не мигает экраном
+  const shown = performance.now() - started;
+  if (shown < 450) await sleep(450 - shown);
+  if (!location.hash) window.scrollTo(0, 0);
+  root.classList.add('is-ready');
+  loader?.addEventListener('transitionend', () => loader.remove(), { once: true });
+  setTimeout(() => loader?.remove(), 1200);
+}
+
 initNav();
 initDots();
+await preload();
 initReveal();
 initIntro();
 initGallery();

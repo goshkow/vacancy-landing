@@ -764,3 +764,17 @@ body::after { content: ''; position: absolute; inset: 0; z-index: 60; pointer-ev
 /* карточки стека на белом фоне блока */
 .stack__col { background: var(--soft); }
 @media (min-width: 1069px) { .stack__grid--5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* дети экрана - элементы сетки с min-width: auto: без этого лента галереи растягивалась на все карточки и не листалась */
+.screen > * { min-width: 0; }
+
+/* прелоадер как на лендинге Докки: пока нет is-ready, прокрутка закрыта и анимации на паузе */
+.preloader { position: fixed; inset: 0; z-index: 1000; display: none; place-content: center; justify-items: center; gap: 26px; background: #000; transition: opacity .5s var(--ease-out), visibility .5s; }
+.js .preloader { display: grid; }
+.is-ready .preloader { opacity: 0; visibility: hidden; pointer-events: none; }
+.preloader__mark { width: 64px; height: auto; filter: invert(1); animation: preloader-breathe 1.6s ease-in-out infinite; }
+.preloader__bar { width: 120px; height: 2px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, .14); }
+.preloader__bar i { display: block; height: 100%; background: #fff; transform-origin: left; transform: scaleX(var(--p, .04)); transition: transform .35s var(--ease-out); }
+@keyframes preloader-breathe { 50% { opacity: .55; transform: scale(.94); } }
+html.js:not(.is-ready), html.js:not(.is-ready) body { overflow: hidden; }
+html.js:not(.is-ready) body *:not(.preloader):not(.preloader *) { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { .preloader__mark { animation: none; } }
