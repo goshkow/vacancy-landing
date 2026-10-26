@@ -111,20 +111,20 @@ export function buildRun(id) {
   const collected = { ...fields, ready, ...(ready ? {} : { reply: scenario.reply }) };
   const { steps, edges } = route(voice, ready);
   const data = {
-    incoming: { input: { update: 'message', chat: 'учебный чат' }, output: incoming },
+    incoming: { input: { update: 'message', chat: 'Заявки' }, output: incoming },
     kind: { input: { type: incoming.type }, output: { branch: String(voice), next: voice ? 'Расшифровать' : 'Найти в регламенте' } },
     stt: voice ? { input: { file: 'voice.ogg', duration: '0:09' }, output: { text: scenario.message } } : null,
     kb: { input: { query: scenario.message }, output: { source: 'Регламент приёма заявок', found: 2 } },
     collect: { input: { message: scenario.message, knowledge: 'Регламент приёма заявок' }, output: collected },
     check: { input: { ready }, output: { branch: String(ready), next: ready ? 'Создать сделку' : 'Ответить клиенту' } },
     crm: ready
-      ? { input: { name: fields.name, topic: fields.topic, phone: fields.phone, ...(fields.time ? { time: fields.time } : {}) }, output: { simulated: true, deal: 'учебная сделка', stage: 'Новая заявка' } }
+      ? { input: { name: fields.name, topic: fields.topic, phone: fields.phone, ...(fields.time ? { time: fields.time } : {}) }, output: { deal: 'Сделка 1042', stage: 'Новая заявка' } }
       : null,
-    notify: ready ? { input: { deal: 'учебная сделка', manager: 'дежурный' }, output: { simulated: true, chat: 'менеджеры', delivered: true } } : null,
+    notify: ready ? { input: { deal: 'Сделка 1042', manager: 'дежурный' }, output: { chat: 'менеджеры', delivered: true } } : null,
     reply: ready
       ? null
-      : { input: { text: scenario.reply }, output: { simulated: true, chat: 'учебный чат', delivered: true } },
-    log: { input: { event: ready ? 'deal_created' : 'question_answered', channel: incoming.type }, output: { simulated: true, sheet: 'Журнал заявок', row: ready ? 18 : 19 } }
+      : { input: { text: scenario.reply }, output: { chat: 'Заявки', delivered: true } },
+    log: { input: { event: ready ? 'deal_created' : 'question_answered', channel: incoming.type }, output: { sheet: 'Журнал заявок', row: ready ? 18 : 19 } }
   };
   const missing = [['name', 'имя'], ['phone', 'телефон']].filter(([key]) => !fields[key]).map(([, label]) => label);
   const notes = {
@@ -158,21 +158,22 @@ export function buildRun(id) {
 
 // сборка сценария в hero: блоки появляются по прокрутке. координаты wide и narrow - левый верхний угол блока
 export const INTRO_NODES = Object.freeze([
-  Object.freeze({ id: 'a', kind: 'start', icon: 'play', title: 'Сообщение', preview: 'Telegram', wide: [0, 190], narrow: [90, 0] }),
-  Object.freeze({ id: 'b', kind: 'condition', icon: 'split', title: 'Голосовое?', preview: 'Тип сообщения', wide: [220, 190], narrow: [90, 92] }),
-  // этот блок курсор ставит в середину и перетаскивает выше
-  Object.freeze({ id: 'c', kind: 'ai', icon: 'mic', title: 'Речь в текст', preview: 'Распознавание', wide: [440, 60], narrow: [0, 194], spawn: Object.freeze({ wide: [440, 190], narrow: [90, 194] }) }),
-  Object.freeze({ id: 'd', kind: 'knowledge', icon: 'file', title: 'База знаний', preview: 'Регламент', wide: [440, 320], narrow: [180, 194] }),
-  // этот блок сначала безымянный, потом курсор его переименовывает
-  Object.freeze({ id: 'e', kind: 'ai', icon: 'sparkle', title: 'Собрать заявку', draft: 'AI-шаг', preview: 'Имя, тема, телефон', wide: [660, 190], narrow: [90, 296] }),
-  Object.freeze({ id: 'f', kind: 'crm', icon: 'stack', title: 'Сделка в CRM', preview: 'Новая заявка', wide: [880, 60], narrow: [0, 398] }),
-  Object.freeze({ id: 'g', kind: 'message', icon: 'send', title: 'Ответ клиенту', preview: 'Telegram', wide: [880, 320], narrow: [180, 398] })
+  Object.freeze({ id: 'a', from: 'left', kind: 'start', icon: 'play', title: 'Сообщение', preview: 'Telegram', wide: [0, 190], narrow: [90, 0] }),
+  Object.freeze({ id: 'b', from: 'left', kind: 'condition', icon: 'split', title: 'Голосовое?', preview: 'Тип сообщения', wide: [220, 190], narrow: [90, 92] }),
+  Object.freeze({ id: 'c', from: 'top', kind: 'ai', icon: 'mic', title: 'Речь в текст', preview: 'Распознавание', wide: [440, 60], narrow: [0, 194] }),
+  Object.freeze({ id: 'd', from: 'bottom', kind: 'knowledge', icon: 'file', title: 'База знаний', preview: 'Регламент', wide: [440, 320], narrow: [180, 194] }),
+  Object.freeze({ id: 'e', from: 'bottom', kind: 'ai', icon: 'sparkle', title: 'Собрать заявку', preview: 'Имя, тема, телефон', wide: [660, 190], narrow: [90, 296] }),
+  Object.freeze({ id: 'f', from: 'right', kind: 'crm', icon: 'stack', title: 'Сделка в CRM', preview: 'Новая заявка', wide: [880, 60], narrow: [0, 398] }),
+  Object.freeze({ id: 'g', from: 'right', kind: 'message', icon: 'send', title: 'Ответ клиенту', preview: 'Telegram', wide: [880, 320], narrow: [180, 398] })
 ]);
 
 export const INTRO_EDGES = Object.freeze([
   Object.freeze(['a', 'b']), Object.freeze(['b', 'c']), Object.freeze(['b', 'd']), Object.freeze(['c', 'e']),
   Object.freeze(['d', 'e']), Object.freeze(['e', 'f']), Object.freeze(['e', 'g'])
 ]);
+
+// в каком порядке курсоры приносят блоки; последний остаётся и жмёт «Запустить»
+export const INTRO_ORDER = Object.freeze(['c', 'a', 'f', 'd', 'b', 'g', 'e']);
 
 // путь тестового запуска после сборки
 export const INTRO_RUN = Object.freeze(['a', 'b', 'c', 'e', 'f']);
@@ -216,21 +217,21 @@ export function findQuestion(id) {
 
 // сценарий Докки App: план, разрешение, правка, проверка
 export const APP_FLOW = Object.freeze([
-  Object.freeze({ type: 'task', text: 'Добавь ограничение частоты запросов к /api/runs и тест на него' }),
-  Object.freeze({ type: 'step', text: 'Прочитал api/runs.py и настройки' }),
-  Object.freeze({ type: 'step', text: 'Нашёл общий limiter в core/limits.py' }),
-  Object.freeze({ type: 'step', text: 'Подключил его к маршруту, без нового кода лимитов' }),
+  Object.freeze({ type: 'task', text: 'Добавь лимит на частоту запросов к /orders и тест на него' }),
+  Object.freeze({ type: 'step', text: 'Прочитал api/orders.py и настройки' }),
+  Object.freeze({ type: 'step', text: 'Нашёл готовый limiter в core/limits.py' }),
+  Object.freeze({ type: 'step', text: 'Подключил его к маршруту, новый код лимитов не нужен' }),
   Object.freeze({ type: 'diff' }),
-  Object.freeze({ type: 'permission', command: 'pytest tests/test_runs.py -q' }),
-  Object.freeze({ type: 'result', text: '14 passed', detail: 'Изменения готовы к просмотру. Можно откатить одним действием.' })
+  Object.freeze({ type: 'permission', command: 'pytest tests/test_orders.py -q' }),
+  Object.freeze({ type: 'result', text: '12 passed', detail: 'Изменения в рабочей области, их можно откатить.' })
 ]);
 
 export const APP_DIFF = Object.freeze([
-  Object.freeze({ kind: 'meta', text: 'api/runs.py' }),
+  Object.freeze({ kind: 'meta', text: 'api/orders.py' }),
   Object.freeze({ kind: 'ctx', text: 'from core.limits import limiter' }),
   Object.freeze({ kind: 'ctx', text: '' }),
   Object.freeze({ kind: 'add', text: '@limiter.limit("30/minute")' }),
-  Object.freeze({ kind: 'ctx', text: '@router.post("/runs")' }),
-  Object.freeze({ kind: 'del', text: 'async def start_run(body: RunIn):' }),
-  Object.freeze({ kind: 'add', text: 'async def start_run(request: Request, body: RunIn):' })
+  Object.freeze({ kind: 'ctx', text: '@router.post("/orders")' }),
+  Object.freeze({ kind: 'del', text: 'async def create_order(body: OrderIn):' }),
+  Object.freeze({ kind: 'add', text: 'async def create_order(request: Request, body: OrderIn):' })
 ]);

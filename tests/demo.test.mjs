@@ -9,7 +9,7 @@ test('полная заявка идёт в CRM и не отвечает в ча
   assert.deepEqual(run.edges, ['e1', 'e3', 'e5', 'e6', 'e7', 'e9', 'e10']);
   assert.equal(run.data.reply, null);
   assert.equal(run.data.stt, null);
-  assert.equal(run.data.crm.output.simulated, true);
+  assert.equal(run.data.crm.output.deal, 'Сделка 1042');
   assert.equal(run.data.crm.input.phone, '+7 900 000-00-00');
 });
 

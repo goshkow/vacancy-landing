@@ -11,9 +11,9 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/montserrat-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/unbounded-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=20261026-pre">
+  <link rel="stylesheet" href="styles.css?v=20261026-studio">
   <script>document.documentElement.classList.add('js');setTimeout(function(){document.documentElement.classList.add('is-ready')},10000)</script>
-  <script type="module" src="script.js?v=20261026-pre"></script>
+  <script type="module" src="script.js?v=20261026-studio"></script>
 </head>
 <body>
   <div class="preloader" data-preloader aria-hidden="true">
@@ -40,6 +40,22 @@
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/></symbol>
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  
+    <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11 6.5"/></symbol>
+    <symbol id="i-chats" viewBox="0 0 24 24"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
+    <symbol id="i-env" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="13" rx="2"/><path d="M8 21h8M12 17.5V21M7.5 9.5l2.5 2-2.5 2M12.5 13.5h4"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.8l2 2.2h7.2a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.5 16a8 8 0 1 1 15 0"/><path d="m12 13 3.5-3.5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.5 5.4 3.5 8.5s-1 5.9-3.5 8.5c-2.5-2.6-3.5-5.4-3.5-8.5s1-5.9 3.5-8.5z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="m4 6.5 1.5 1.5L8 5.5M4 12.5 5.5 14 8 11.5M4 18.5 5.5 20 8 17.5M11 7h9M11 13h9M11 19h9"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3.2" fill="currentColor" stroke="none"/></symbol>
   </svg>
 
   <a class="skip" href="#main">К содержанию</a>
@@ -61,9 +77,8 @@
 
   <main id="main">
     <!-- hero: пустая Studio по прокрутке выпрямляется, курсор собирает сценарий, окно уходит вверх -->
-    <section data-dots="rainbow" class="intro" id="top" aria-labelledby="hero-title" data-intro>
-      <div class="intro__stage">
-        <div class="hero__copy" data-intro-copy>
+    <section data-dots="rainbow" class="screen hero" id="top" aria-labelledby="hero-title">
+        <div class="hero__copy">
           <img class="hero__mark" src="assets/goshkow-mark.svg" alt="" width="64" height="40">
           <h1 id="hero-title" class="hero__title">Иван Агошков</h1>
           <p class="hero__lead">AI-инженер (Python). Делаю AI-ботов и голосовых агентов<br>для продаж, интегрирую с CRM</p>
@@ -73,35 +88,7 @@
           </div>
           <p class="hero__meta">10+ запущенных AI-проектов · 18 000+ вызовов AI в день · удалённо или гибрид · готов выйти сразу</p>
         </div>
-
-        <div class="intro__win" aria-hidden="true" data-intro-win>
-          <div class="studio-app__bar">
-            <span class="studio-app__dots"><i></i><i></i><i></i></span>
-            <span class="studio-app__name">Докки Studio</span>
-            <span class="chip chip--muted" data-intro-chip>Новая автоматизация</span>
-            <span class="studio-app__status" data-intro-status>Черновик</span>
-            <span class="intro__run" data-intro-run><svg><use href="#i-play"/></svg>Запустить</span>
-          </div>
-          <div class="intro__canvas" data-intro-canvas>
-            <div class="intro__empty" data-intro-empty>
-              <img src="assets/brand/dokky-mark.png" alt="" width="40" height="40">
-              <p class="intro__empty-title">Здесь пока пусто</p>
-              <p class="intro__empty-text">Соберите сценарий из блоков: каналы, AI, база знаний, CRM.</p>
-              <span class="intro__create" data-intro-create><svg><use href="#i-plus"/></svg>Создать автоматизацию</span>
-            </div>
-            <div class="intro__scene" data-intro-scene>
-              <svg class="intro__edges" data-intro-edges></svg>
-            </div>
-          </div>
-          <svg class="intro__cursor" data-intro-cursor viewBox="0 0 24 24" width="26" height="26"><path d="M4 2.5v17.2l4.6-4.4 3 6.6 3-1.4-3-6.4H18z"/></svg>
-        </div>
-
-        <div class="intro__title" data-intro-title>
-          <p class="intro__brand"><img src="assets/brand/dokky-mark.png" alt="" width="64" height="64">Докки Studio</p>
-          <p class="intro__sub">Мой конструктор AI-агентов и автоматизаций. <span>Ниже его можно запустить.</span></p>
-        </div>
-      </div>
-    </section>
+      </section>
 
     <!-- коротко о главном: галерея крупных карточек -->
     <section class="screen highlights" id="overview" aria-labelledby="highlights-title">
@@ -170,12 +157,28 @@
       </div>
     </section>
 
+    <!-- вступление к Studio: курсоры приносят блоки с краёв экрана, связывают и запускают сценарий -->
+    <section data-eco-hide class="screen intro" id="studio-intro" aria-label="Докки Studio" data-intro>
+      <div class="intro__stage">
+        <div class="intro__head reveal">
+          <h2 class="section-title">Докки Studio - мой конструктор агентов</h2>
+          <p class="info__lead">Каналы, голос, AI, база знаний и CRM собираются в один сценарий из блоков. Оркестрация своя, без готовых конструкторов.</p>
+        </div>
+        <div class="intro__board" aria-hidden="true" data-intro-board>
+          <span class="intro__run" data-intro-run><svg><use href="#i-play"/></svg>Запустить</span>
+          <div class="intro__scene" data-intro-scene>
+            <svg class="intro__edges" data-intro-edges></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Studio: живой сценарий -->
-    <section class="screen studio" id="studio" aria-labelledby="studio-title">
+    <section data-eco-hide data-eco-noshade class="screen studio" id="studio" aria-labelledby="studio-title">
       <div class="wrap">
         <header class="product-head reveal">
-          <h2 id="studio-title" class="product-head__title">Сценарий агента в Докки Studio</h2>
-          <p class="product-head__lead">Конструктор агентных процессов. Каналы, голос, AI, база знаний и CRM собираются в один сценарий, у каждого блока видны данные на входе и выходе.</p>
+          <h2 id="studio-title" class="product-head__title">Попробуйте сами</h2>
+          <p class="product-head__lead">Выберите сообщение клиента и посмотрите, что сценарий делает на каждом шаге. Имена и номера вымышлены, внешние сервисы не вызываются. Studio в закрытом тесте, релиз в ноябре 2026.</p>
         </header>
       </div>
 
@@ -214,17 +217,8 @@
             </aside>
           </div>
         </div>
-
-        <p class="footnote-inline">Имена и номера вымышлены, внешние сервисы не вызываются. Studio в закрытом тесте, релиз в ноябре 2026.</p>
       </div>
 
-      <div class="wrap">
-        <ul class="facts reveal">
-          <li><strong>Собственная оркестрация</strong><span>Свой движок, без готовых конструкторов. Типизированные шаги, проверка сценария, публикация, журнал запусков.</span></li>
-          <li><strong>Интеграции</strong><span>Telegram, CRM, Google Docs и Sheets, HTTP с ограничениями, база знаний с версиями.</span></li>
-          <li><strong>Безопасность</strong><span>Шифрование подключений, CSRF, отзывные сессии, права участников и идемпотентные запуски.</span></li>
-        </ul>
-      </div>
     </section>
 
     <!-- Докки: пример диалога, вопрос бабблом и ответ текстом -->
@@ -237,59 +231,107 @@
       </div>
     </section>
 
-    <!-- Докки App -->
-    <section class="screen app" id="app" aria-labelledby="app-title">
+    <!-- Докки App: копия интерфейса настольного приложения в режиме Code -->
+    <section data-eco-hide data-eco-noshade class="screen app" id="app" aria-labelledby="app-title">
       <div class="wrap">
         <header class="product-head reveal">
           <h2 id="app-title" class="product-head__title">Докки App: агент для кода</h2>
-          <p class="product-head__lead">Настольное приложение Докки для разработки с собственным агентным циклом. Сначала план, потом правка, и ни одной команды без разрешения.</p>
+          <p class="product-head__lead">Настольное приложение со своим агентным циклом: читает код, спрашивает разрешение на команду, запускает тесты и показывает, что поменял. Сейчас в бете.</p>
         </header>
       </div>
       <div class="wrap wrap--wide">
-        <div class="dapp reveal" data-app>
-          <div class="dapp__bar">
-            <span class="studio-app__dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="dapp__title">Докки App</span>
-            <button type="button" class="dapp__replay" data-app-replay><svg aria-hidden="true"><use href="#i-restart"/></svg>Повторить</button>
-          </div>
-          <div class="dapp__body">
-            <aside class="dapp__side" aria-hidden="true">
-              <span class="dapp__new"><svg><use href="#i-plus"/></svg>Новый чат</span>
-              <p class="dapp__label">Проекты</p>
-              <span class="dapp__item is-active"><svg><use href="#i-file"/></svg>studio-api</span>
-              <span class="dapp__item"><svg><use href="#i-file"/></svg>dokky-bot</span>
-              <span class="dapp__item"><svg><use href="#i-file"/></svg>landing</span>
-              <p class="dapp__label">Чаты</p>
-              <span class="dapp__item dapp__item--chat is-active">Лимиты запросов</span>
-              <span class="dapp__item dapp__item--chat">Миграция БД</span>
-              <span class="dapp__item dapp__item--chat">Разбор логов</span>
-            </aside>
+        <div class="dx reveal" data-app>
+          <aside class="dx-side" aria-hidden="true">
+            <div class="dx-side__top">
+              <span class="dx-lights"><i></i><i></i><i></i></span>
+              <span class="dx-ico"><svg><use href="#i-sidebar"/></svg></span>
+              <span class="dx-ico dx-ico--flip"><svg><use href="#i-chevron"/></svg></span>
+              <span class="dx-ico dx-ico--off"><svg><use href="#i-chevron"/></svg></span>
+            </div>
+            <p class="dx-brand"><b>Докки</b><span>Code</span></p>
+            <div class="dx-tiles">
+              <span><svg><use href="#i-search"/></svg></span>
+              <span><svg><use href="#i-chats"/></svg></span>
+              <span><svg><use href="#i-folder"/></svg></span>
+              <span><svg><use href="#i-list"/></svg></span>
+              <span><svg><use href="#i-more"/></svg></span>
+            </div>
+            <p class="dx-label">Проекты</p>
+            <div class="dx-list" data-app-chats>
+              <span class="dx-proj"><svg><use href="#i-folder"/></svg>shop-bot</span>
+              <span class="dx-chat"><b>Перенеси настройки в .env</b><small>5 ч</small></span>
+              <span class="dx-chat"><b>Почему падает оплата</b><small>1 д</small></span>
+            </div>
+            <p class="dx-label">Недавнее</p>
+            <p class="dx-none">Чатов пока нет</p>
+            <div class="dx-foot">
+              <span class="dx-avatar">А</span>
+              <span class="dx-who"><b>Алексей</b><small>Plus · 49%</small></span>
+              <svg class="dx-ring" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="7.5" pathLength="100" stroke-dasharray="49 100"/></svg>
+              <span class="dx-newchat"><svg><use href="#i-edit"/></svg></span>
+            </div>
+          </aside>
 
-            <div class="dapp__main">
-              <div class="dapp__head" aria-hidden="true">
-                <b>Лимиты запросов</b><span>studio-api · main</span>
-              </div>
-              <div class="dapp__feed" data-app-feed aria-live="polite"></div>
-              <div class="dapp__composer" aria-hidden="true">
-                <span class="dapp__plus"><svg><use href="#i-plus"/></svg></span>
-                <span class="dapp__ask">Спросить Докки</span>
-                <span class="dapp__mic"><svg><use href="#i-mic"/></svg></span>
-                <span class="dapp__send"><svg><use href="#i-up"/></svg></span>
+          <div class="dx-main">
+            <div class="dx-welcome" data-app-welcome>
+              <img src="assets/brand/dokky-app-mark.png" alt="" width="64" height="64">
+              <p class="dx-welcome__title">Над чем поработаем в коде?</p>
+              <div class="dx-welcome__chips" aria-hidden="true">
+                <span class="is-on"><svg><use href="#i-folder"/></svg>shop-bot</span>
+                <span><svg><use href="#i-plus"/></svg>Новый проект</span>
               </div>
             </div>
-
-            <aside class="dapp__work" aria-label="Рабочая область" data-app-work>
-              <p class="dapp__label">Рабочая область</p>
-              <div class="wc"><b>Среда</b><span>Локально · ветка main</span></div>
-              <div class="wc"><b>Контекст</b><span data-w-context>0 файлов</span></div>
-              <div class="wc"><b>Изменения</b><span data-w-diff>нет</span></div>
-              <div class="wc"><b>Файлы</b><span data-w-files>api/runs.py</span></div>
-              <div class="wc"><b>Браузер</b><span>не открыт</span></div>
-              <div class="wc wc--plan"><b>План</b><ol data-w-plan></ol></div>
-            </aside>
+            <div class="dx-feed" data-app-feed aria-live="polite" hidden></div>
+            <div class="dx-bottom">
+              <div class="dx-composer" aria-hidden="true" data-app-composer>
+                <span class="dx-composer__plus"><svg><use href="#i-plus"/></svg></span>
+                <span class="dx-composer__input" data-app-input>Опишите задачу для проекта</span>
+                <span class="dx-composer__mic"><svg><use href="#i-mic"/></svg></span>
+                <span class="dx-composer__send" data-app-send><svg class="is-up"><use href="#i-up"/></svg><svg class="is-stop"><use href="#i-stop"/></svg></span>
+              </div>
+              <div class="dx-under" aria-hidden="true">
+                <span><svg><use href="#i-folder"/></svg>shop-bot</span>
+                <span class="dx-under__right">Автоматически<svg><use href="#i-chevron-down"/></svg></span>
+                <span>Pro<svg><use href="#i-chevron-down"/></svg></span>
+              </div>
+            </div>
           </div>
+
+          <aside class="dx-work" aria-label="Рабочая область">
+            <p class="dx-work__head">Рабочая область<span aria-hidden="true"><svg><use href="#i-close"/></svg></span></p>
+            <div class="dx-card is-open">
+              <p class="dx-card__head"><svg><use href="#i-env"/></svg>Среда</p>
+              <dl class="dx-env">
+                <dt>Папка</dt><dd>~/projects/shop-bot</dd>
+                <dt>Проект</dt><dd>shop-bot</dd>
+                <dt>Модель</dt><dd>Докки Pro</dd>
+                <dt>Подтверждения</dt><dd>Автоматически</dd>
+              </dl>
+            </div>
+            <div class="dx-card is-open">
+              <p class="dx-card__head"><svg><use href="#i-gauge"/></svg>Контекст<small data-w-context>0%</small></p>
+              <span class="dx-meter"><i data-w-meter></i></span>
+            </div>
+            <div class="dx-card" data-w-diff-card>
+              <p class="dx-card__head"><svg><use href="#i-branch"/></svg>Изменения<small data-w-diff>нет</small><svg class="dx-card__more"><use href="#i-chevron"/></svg></p>
+              <div class="dx-card__body" data-w-diff-body></div>
+            </div>
+            <div class="dx-card">
+              <p class="dx-card__head"><svg><use href="#i-folder"/></svg>Файлы<svg class="dx-card__more"><use href="#i-chevron"/></svg></p>
+            </div>
+            <div class="dx-card">
+              <p class="dx-card__head"><svg><use href="#i-globe"/></svg>Браузер<svg class="dx-card__more"><use href="#i-chevron"/></svg></p>
+            </div>
+            <div class="dx-card" data-w-plan-card>
+              <p class="dx-card__head"><svg><use href="#i-list"/></svg>План<small data-w-plan-count></small><svg class="dx-card__more"><use href="#i-chevron"/></svg></p>
+              <ol class="dx-card__body dx-plan" data-w-plan></ol>
+            </div>
+          </aside>
+          <svg class="kd-cursor" data-app-cursor viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2.5v17.2l4.6-4.4 3 6.6 3-1.4-3-6.4H18z"/></svg>
         </div>
-        <p class="footnote-inline footnote-inline--dark">Пример на вымышленном проекте.</p>
+        <div class="dx-after">
+          <button type="button" class="pill pill--light pill--sm is-hidden" data-app-replay><svg aria-hidden="true"><use href="#i-restart"/></svg>Повторить</button>
+        </div>
       </div>
     </section>
 

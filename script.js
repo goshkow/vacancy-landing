@@ -1,6 +1,8 @@
-import { NODES, EDGES, SCENARIO_IDS, scenarioLabel, buildRun, DOKKY_QUESTIONS, findQuestion, APP_FLOW, APP_DIFF, INTRO_NODES, INTRO_EDGES, INTRO_RUN } from './demo-data.js?v=20261026-pre';
+import { NODES, EDGES, SCENARIO_IDS, scenarioLabel, buildRun, DOKKY_QUESTIONS, findQuestion, APP_FLOW, APP_DIFF, INTRO_NODES, INTRO_EDGES, INTRO_RUN, INTRO_ORDER } from './demo-data.js?v=20261026-studio';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+// на лендинге Докки страница масштабируется на больших мониторах, здесь масштаба нет
+const pageZoom = () => 1;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function h(tag, attrs = {}, ...children) {
@@ -189,219 +191,192 @@ function buildNode(node, tag = 'div', attrs = {}) {
   );
 }
 
-/* hero: сборка сценария. всё состояние - функция от прогресса 0..1: до ключевой точки его двигает прокрутка, дальше время */
-const INTRO = {
-  flatten: [.02, .15], cursorIn: [.12, .2], click: [.2, .235], emptyOut: [.23, .28],
-  build: [.28, .71], toRun: [.71, .75], leave: [.76, .81], run: [.76, .85], out: [.86, .97]
-};
+const INTRO = { drag: [0, .5], dragLen: .26, back: .1, wire: [.52, .64], btnIn: [.6, .64], toRun: [.6, .68], press: [.68, .71], run: [.72, .92], leave: [.75, .83] };
+const INTRO_MS = 9000;
+const INTRO_COLORS = ['#0071e3', '#ff9500', '#34c759', '#af52de', '#ff2d55', '#30b0c7', '#1d1d1f'];
 
 function initIntro() {
   const root = document.querySelector('[data-intro]');
   if (!root) return;
   const q = sel => root.querySelector(sel);
   const stage = q('.intro__stage');
-  const win = q('[data-intro-win]');
-  const copy = q('[data-intro-copy]');
-  const title = q('[data-intro-title]');
-  const canvas = q('[data-intro-canvas]');
+  const board = q('[data-intro-board]');
   const scene = q('[data-intro-scene]');
   const svg = q('[data-intro-edges]');
-  const empty = q('[data-intro-empty]');
-  const create = q('[data-intro-create]');
   const runBtn = q('[data-intro-run]');
-  const cursor = q('[data-intro-cursor]');
-  const status = q('[data-intro-status]');
-  const chip = q('[data-intro-chip]');
 
   const nodes = {};
   INTRO_NODES.forEach(node => {
-    const el = buildNode({ ...node, title: node.draft ?? node.title });
+    const el = buildNode(node);
     scene.append(el);
-    nodes[node.id] = { el, titleEl: el.querySelector('.node__title'), stateEl: el.querySelector('[data-state]'), node };
+    nodes[node.id] = { el, stateEl: el.querySelector('[data-state]'), node };
   });
   const runEdges = new Set(INTRO_RUN.slice(1).map((id, i) => `${INTRO_RUN[i]}>${id}`));
   const edges = INTRO_EDGES.map(([from, to]) => {
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('class', 'iedge');
     path.setAttribute('pathLength', '1');
-    const flow = document.createElementNS(SVG_NS, 'path');
-    svg.append(path, flow);
-    const onRun = runEdges.has(`${from}>${to}`);
-    flow.setAttribute('class', onRun ? 'iflow is-run' : 'iflow');
-    return { from, to, path, flow, onRun };
+    svg.append(path);
+    return { from, to, path, onRun: runEdges.has(`${from}>${to}`) };
   });
 
-  // слоты сборки: по одному на блок, после блока e - его переименование
-  const slots = [];
-  INTRO_NODES.forEach(node => {
-    slots.push({ type: 'add', id: node.id });
-    if (node.draft) slots.push({ type: 'rename', id: node.id });
+  // курсоры: по одному на блок, у каждого свой цвет
+  const stayer = INTRO_ORDER.at(-1);
+  const step = (INTRO.drag[1] - INTRO.drag[0] - INTRO.dragLen) / (INTRO_ORDER.length - 1);
+  const cursors = INTRO_ORDER.map((id, i) => {
+    const el = document.createElementNS(SVG_NS, 'svg');
+    el.setAttribute('class', 'intro__cursor');
+    el.setAttribute('viewBox', '0 0 24 24');
+    el.setAttribute('width', '26');
+    el.setAttribute('height', '26');
+    el.style.setProperty('--c', INTRO_COLORS[i % INTRO_COLORS.length]);
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', 'M4 2.5v17.2l4.6-4.4 3 6.6 3-1.4-3-6.4H18z');
+    el.append(path);
+    stage.append(el);
+    const start = INTRO.drag[0] + i * step;
+    return { id, el, start, end: start + INTRO.dragLen };
   });
-  const slotLen = (INTRO.build[1] - INTRO.build[0]) / slots.length;
-  const slotStart = i => INTRO.build[0] + i * slotLen;
-  const addSlot = Object.fromEntries(slots.map((slot, i) => [slot, i]).filter(([slot]) => slot.type === 'add').map(([slot, i]) => [slot.id, i]));
-  const renameSlot = slots.findIndex(slot => slot.type === 'rename');
 
   let geo = null;
   let last = -1;
 
-  // координаты внутри окна без учёта его transform: offsetLeft/Top не зависят от наклона
-  const offsetIn = (el, x, y) => {
-    let cur = el;
-    while (cur && cur !== win) { x += cur.offsetLeft; y += cur.offsetTop; cur = cur.offsetParent; }
-    return [x, y];
-  };
-
   const measure = () => {
-    const mode = canvas.clientWidth < 560 ? 'narrow' : 'wide';
+    const mode = board.clientWidth < 560 ? 'narrow' : 'wide';
     const nw = mode === 'narrow' ? 160 : 200;
-    win.classList.toggle('is-narrow', mode === 'narrow');
+    root.classList.toggle('is-narrow', mode === 'narrow');
     Object.values(nodes).forEach(item => { item.el.style.width = `${nw}px`; });
     const nh = nodes.a.el.offsetHeight;
     const pts = INTRO_NODES.map(node => node[mode]);
-    const W = Math.max(...pts.map(p => p[0])) + nw;
-    const H = Math.max(...pts.map(p => p[1])) + nh;
-    const pad = mode === 'narrow' ? 12 : 28;
-    const scale = Math.min(1, (canvas.clientWidth - pad * 2) / W, (canvas.clientHeight - pad * 2) / H);
-    const left = (canvas.clientWidth - W * scale) / 2;
-    const top = (canvas.clientHeight - H * scale) / 2;
+    const W = Math.max(...pts.map(pt => pt[0])) + nw;
+    const H = Math.max(...pts.map(pt => pt[1])) + nh;
+    // на узком экране кнопке нужно место над сценарием, на широком она встаёт в пустой угол над первым блоком
+    const btnRoom = mode === 'narrow' ? 64 : 0;
+    const scale = Math.min(1.1, board.clientWidth / W, (board.clientHeight - btnRoom) / H);
+    const left = (board.clientWidth - W * scale) / 2;
+    const top = btnRoom + Math.max(0, board.clientHeight - btnRoom - H * scale) * .3;
     scene.style.width = `${W}px`;
     scene.style.height = `${H}px`;
     scene.style.transform = `translate(${left}px, ${top}px) scale(${scale})`;
     svg.setAttribute('width', W);
     svg.setAttribute('height', H);
+    const a = INTRO_NODES[0][mode];
+    const btnAt = mode === 'narrow'
+      ? [board.clientWidth / 2, top - btnRoom / 2]
+      : [left + (a[0] + nw / 2) * scale, top + (a[1] - 70) * scale];
+    runBtn.style.left = `${btnAt[0]}px`;
+    runBtn.style.top = `${btnAt[1]}px`;
 
-    const target = {};
-    const spawn = {};
-    INTRO_NODES.forEach(node => {
-      target[node.id] = node[mode];
-      spawn[node.id] = node.spawn?.[mode] ?? [node[mode][0] + (mode === 'narrow' ? 14 : 26), node[mode][1] + (mode === 'narrow' ? 22 : 34)];
-    });
+    const target = Object.fromEntries(INTRO_NODES.map(node => [node.id, node[mode]]));
     for (const edge of edges) {
       const [fx, fy] = target[edge.from];
       const [tx, ty] = target[edge.to];
       let d;
       if (mode === 'wide') {
-        const x1 = fx + nw, y1 = fy + nh / 2, x2 = tx - 6, y2 = ty + nh / 2, mx = (x1 + x2) / 2;
+        const x1 = fx + nw, y1 = fy + nh / 2, x2 = tx, y2 = ty + nh / 2, mx = (x1 + x2) / 2;
         d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
       } else {
-        const x1 = fx + nw / 2, y1 = fy + nh, x2 = tx + nw / 2, y2 = ty - 6, my = (y1 + y2) / 2;
+        const x1 = fx + nw / 2, y1 = fy + nh, x2 = tx + nw / 2, y2 = ty, my = (y1 + y2) / 2;
         d = `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
       }
       edge.path.setAttribute('d', d);
-      edge.flow.setAttribute('d', d);
     }
 
-    const canvasAt = offsetIn(canvas, 0, 0);
-    const center = ([x, y]) => [canvasAt[0] + left + (x + nw / 2) * scale, canvasAt[1] + top + (y + nh / 2) * scale];
-    const createAt = offsetIn(create, create.offsetWidth / 2, create.offsetHeight / 2);
-    const runAt = offsetIn(runBtn, runBtn.offsetWidth / 2, runBtn.offsetHeight / 2);
-    const outside = [win.offsetWidth + 60, win.offsetHeight + 60];
-
-    // маршрут курсора: точки [прогресс, x, y], между ними плавный переход
-    const keys = [[INTRO.cursorIn[0], ...outside], [INTRO.cursorIn[1], ...createAt], [INTRO.build[0], ...createAt]];
-    slots.forEach((slot, i) => {
-      const s = slotStart(i);
-      if (slot.type === 'add') {
-        keys.push([s + slotLen * .35, ...center(spawn[slot.id])], [s + slotLen * .45, ...center(spawn[slot.id])], [s + slotLen * .7, ...center(target[slot.id])]);
-      } else {
-        keys.push([s + slotLen * .3, ...center(target[slot.id])], [s + slotLen, ...center(target[slot.id])]);
-      }
+    // сцена -> координаты экрана-секции и обратно; offset не зависит от transform
+    const bx = board.offsetLeft + left;
+    const by = board.offsetTop + top;
+    const toStage = ([x, y]) => [bx + x * scale, by + y * scale];
+    const toScene = ([x, y]) => [(x - bx) / scale, (y - by) / scale];
+    const grab = [nw * .24, nh * .55];
+    const SW = stage.clientWidth;
+    const SH = stage.clientHeight;
+    const out = 60 + nw * scale;
+    const drop = {};
+    const origin = {};
+    INTRO_NODES.forEach((node, i) => {
+      const [x, y] = toStage([target[node.id][0] + grab[0], target[node.id][1] + grab[1]]);
+      drop[node.id] = [x, y];
+      const shift = (i % 2 ? 1 : -1) * SH * .12;
+      origin[node.id] = {
+        left: [-out, y + shift],
+        right: [SW + 40, y - shift],
+        top: [x + shift, -out],
+        bottom: [x - shift, SH + out]
+      }[node.from];
     });
-    keys.push([INTRO.toRun[1], ...runAt], [INTRO.leave[0], ...runAt], [INTRO.leave[1], ...outside]);
-
-    // где окно стоит в начале: прямо под текстом hero
-    const winTop = win.offsetTop;
-    const copyBottom = copy.offsetTop + copy.offsetHeight;
-    geo = {
-      nw, nh, target, spawn, keys,
-      lift: Math.max(0, copyBottom + 28 - winTop),
-      flyUp: winTop + win.offsetHeight + 80
-    };
+    const runAt = [board.offsetLeft + btnAt[0] + 18, board.offsetTop + btnAt[1] + 10];
+    geo = { target, grab, toScene, drop, origin, runAt };
     last = -1;
   };
 
-  const cursorAt = p => {
-    const { keys } = geo;
-    if (p <= keys[0][0]) return keys[0].slice(1);
-    for (let i = 1; i < keys.length; i += 1) {
-      if (p <= keys[i][0]) {
-        const [p0, x0, y0] = keys[i - 1];
-        const [p1, x1, y1] = keys[i];
-        const t = ease(p1 === p0 ? 1 : (p - p0) / (p1 - p0));
-        return [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t];
-      }
-    }
-    return keys.at(-1).slice(1);
+  // плавный перелёт с небольшой дугой
+  const fly = (a, b, t, bend = .12) => {
+    const k = ease(t);
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const arc = Math.sin(Math.PI * k) * bend;
+    return [a[0] + dx * k - dy * arc, a[1] + dy * k + dx * arc];
   };
 
-  const inRange = (p, a, b) => p >= a && p <= b;
+  const render = pos => {
+    if (!geo || pos === last) return;
+    last = pos;
+    const { target, grab, toScene, drop, origin, runAt } = geo;
 
-  const render = p => {
-    if (!geo || p === last) return;
-    last = p;
-    const flat = ease(segment(p, ...INTRO.flatten));
-    const out = ease(segment(p, ...INTRO.out));
+    for (const cur of cursors) {
+      const item = nodes[cur.id];
+      const from = origin[cur.id];
+      const to = drop[cur.id];
+      const t = segment(pos, cur.start, cur.end);
+      let at;
+      let pressed = false;
+      let shown = pos > cur.start - .01;
+      if (pos <= cur.end) {
+        at = fly(from, to, t);
+        pressed = t > 0 && t < 1;
+      } else if (cur.id !== stayer) {
+        const back = segment(pos, cur.end + .02, cur.end + .02 + INTRO.back);
+        at = fly(to, from, back * back, -.08);
+        shown = back < 1;
+      } else {
+        const go = segment(pos, ...INTRO.toRun);
+        const leave = segment(pos, ...INTRO.leave);
+        at = leave > 0 ? fly(runAt, from, leave * leave, -.1) : fly(to, runAt, go, .08);
+        pressed = pos >= INTRO.press[0] && pos <= INTRO.press[1];
+        shown = leave < 1;
+      }
+      cur.el.style.opacity = shown ? '1' : '0';
+      cur.el.style.transform = `translate(${at[0]}px, ${at[1]}px) scale(${pressed ? .86 : 1})`;
 
-    copy.style.opacity = String(1 - segment(p, 0, .06));
-    copy.style.transform = `translateY(${-segment(p, 0, .1) * 60}px)`;
-    copy.style.visibility = p > .07 ? 'hidden' : '';
-    win.style.transform = `translateY(${(1 - flat) * geo.lift - out * geo.flyUp}px) perspective(1800px) rotateX(${(1 - flat) * 34}deg) scale(${.9 + .1 * flat - .06 * out})`;
-    win.style.opacity = String(1 - segment(p, .92, .97));
-    const t = ease(segment(p, .91, .99));
-    title.style.opacity = String(t);
-    title.style.transform = `translateY(${(1 - t) * 80}px) scale(${.94 + .06 * t})`;
-
-    // пустое окно и кнопка «Создать»
-    const gone = segment(p, ...INTRO.emptyOut);
-    empty.style.opacity = String(1 - gone);
-    empty.style.transform = `scale(${1 - gone * .06})`;
-    empty.style.visibility = gone >= 1 ? 'hidden' : '';
-    create.classList.toggle('is-pressed', inRange(p, INTRO.click[0] + .006, INTRO.click[1] - .004));
-
-    // блоки: появляются под курсором и перетаскиваются на место
-    for (const node of INTRO_NODES) {
-      const item = nodes[node.id];
-      const s = slotStart(addSlot[node.id]);
-      const k = segment(p, s, s + slotLen);
-      const show = segment(k, .35, .45);
-      const drag = ease(segment(k, .45, .7));
-      const [sx, sy] = geo.spawn[node.id];
-      const [tx, ty] = geo.target[node.id];
-      item.el.style.transform = `translate(${sx + (tx - sx) * drag}px, ${sy + (ty - sy) * drag}px) scale(${.9 + .1 * show})`;
-      item.el.style.opacity = String(show);
-      item.el.classList.toggle('is-grabbed', k > .4 && k < .7);
-    }
-    // переименование: стираем черновик и набираем новое название
-    const rename = INTRO_NODES.find(node => node.draft);
-    if (rename) {
-      const s = slotStart(renameSlot);
-      const k = segment(p, s, s + slotLen);
-      const erase = segment(k, .4, .55);
-      const type = segment(k, .58, .92);
-      let text = rename.draft;
-      if (k >= .92) text = rename.title;
-      else if (type > 0) text = rename.title.slice(0, Math.round(rename.title.length * type));
-      else if (erase > 0) text = rename.draft.slice(0, Math.round(rename.draft.length * (1 - erase)));
-      const item = nodes[rename.id];
-      if (item.titleEl.textContent !== text) item.titleEl.textContent = text;
-      item.el.classList.toggle('is-editing', k > .3 && k < .92);
+      // блок едет вместе с курсором, пока тот тащит его; потом стоит на месте
+      const [sx, sy] = t >= 1 ? target[cur.id] : (([x, y]) => [x - grab[0], y - grab[1]])(toScene(at));
+      const lift = t > 0 && t < 1 ? 1.03 : 1;
+      item.el.style.transform = `translate(${sx}px, ${sy}px) scale(${lift})`;
+      item.el.style.opacity = pos > cur.start ? '1' : '0';
+      item.el.classList.toggle('is-held', t > 0 && t < 1);
     }
 
-    // связи тянутся после того, как блок встал на место
-    const run = segment(p, ...INTRO.run);
-    for (const edge of edges) {
-      const s = slotStart(addSlot[edge.to]);
-      const k = segment(segment(p, s, s + slotLen), .7, 1);
+    // связи прорисовываются по очереди
+    const wire = INTRO.wire;
+    const wireStep = (wire[1] - wire[0]) / (edges.length + 2);
+    edges.forEach((edge, i) => {
+      const k = segment(pos, wire[0] + i * wireStep, wire[0] + (i + 3) * wireStep);
       edge.path.style.strokeDashoffset = String(1 - ease(k));
-      edge.path.classList.toggle('is-drawn', k >= 1);
-      const lit = edge.onRun && run > (INTRO_RUN.indexOf(edge.from) + .6) / INTRO_RUN.length;
-      edge.path.classList.toggle('is-lit', lit);
-    }
+    });
 
-    // тестовый запуск: блоки по очереди загораются и отмечаются
+    // кнопка появляется над сценарием и исчезает вместе с последним курсором
+    const btnIn = ease(segment(pos, ...INTRO.btnIn));
+    const btnOut = ease(segment(pos, INTRO.leave[0] + .02, INTRO.leave[1]));
+    const btn = btnIn * (1 - btnOut);
+    const pressed = pos >= INTRO.press[0] && pos <= INTRO.press[1];
+    runBtn.style.opacity = String(btn);
+    runBtn.style.transform = `translate(-50%, -50%) scale(${(.9 + .1 * btn) * (pressed ? .92 : 1)})`;
+
+    // запуск: блоки пути по очереди выполняются и отмечаются
+    const run = segment(pos, ...INTRO.run);
+    const n = INTRO_RUN.length;
+    edges.forEach(edge => edge.path.classList.toggle('is-lit', edge.onRun && run > (INTRO_RUN.indexOf(edge.from) + .7) / n));
     INTRO_RUN.forEach((id, i) => {
-      const n = INTRO_RUN.length;
       const running = run > i / n && run < (i + 1) / n;
       const done = run >= (i + 1) / n;
       const item = nodes[id];
@@ -413,61 +388,30 @@ function initIntro() {
         item.stateEl.replaceChildren(...(done ? [icon('check')] : running ? [h('span', { class: 'node__spin' })] : []));
       }
     });
-    win.classList.toggle('is-live', run >= 1);
-    runBtn.classList.toggle('is-pressed', inRange(p, INTRO.toRun[1] - .012, INTRO.toRun[1] + .004));
-
-    const statusText = run >= 1 ? 'Работает' : run > 0 ? 'Выполняется' : 'Черновик';
-    if (status.textContent !== statusText) {
-      status.textContent = statusText;
-      status.className = `studio-app__status${run >= 1 ? ' is-done' : run > 0 ? ' is-running' : ''}`;
-    }
-    const chipText = p >= INTRO.build[1] ? 'Заявки из Telegram' : 'Новая автоматизация';
-    if (chip.textContent !== chipText) chip.textContent = chipText;
-
-    const [cx, cy] = cursorAt(p);
-    const pressed = inRange(p, INTRO.click[0] + .006, INTRO.click[1] - .004)
-      || slots.some((slot, i) => slot.type === 'add' && inRange(p, slotStart(i) + slotLen * .4, slotStart(i) + slotLen * .7))
-      || inRange(p, INTRO.toRun[1] - .012, INTRO.toRun[1] + .004);
-    const visible = p > INTRO.cursorIn[0] && p < INTRO.leave[1];
-    cursor.style.opacity = visible ? '1' : '0';
-    cursor.style.transform = `translate(${cx}px, ${cy}px) scale(${pressed ? .84 : 1})`;
   };
 
-  // без анимации показываем собранный и запущенный сценарий
+  // без анимации - сразу собранный и выполненный сценарий, без курсоров и кнопки
+  const END = 1;
   if (reduced.matches) {
-    root.classList.add('is-static');
     measure();
-    render(INTRO.run[1]);
+    render(END);
     return;
   }
 
-  // до ключевой точки окно выпрямляется прокруткой. в ключевой точке сцена дальше идёт сама,
-  // страница стоит на месте до конца. прокрутку гасим событиями, а не overflow: так не прыгает полоса прокрутки
-  const KEY = INTRO.flatten[1];
-  const DURATION = 9000;
-  let mode = 'idle';
-  let startAt = 0;
+  // секция на экране - сцена играет по времени; ушли - сбрасывается и в следующий раз играет заново
   let frame = 0;
   let current = 0;
-  let scrollFrame = 0;
-  const keyY = () => root.offsetTop + root.offsetHeight - window.innerHeight;
-  const jump = y => window.scrollTo({ top: y, behavior: 'instant' });
-  const finish = () => {
-    if (frame) cancelAnimationFrame(frame);
-    frame = 0;
-    mode = 'done';
-    current = 1;
-    render(1);
-  };
+  let startAt = 0;
+  let mode = 'idle';
   const tick = now => {
-    current = KEY + (1 - KEY) * clamp((now - startAt) / DURATION);
+    current = Math.min(END, (now - startAt) / INTRO_MS);
     render(current);
-    if (current >= 1) finish();
-    else frame = requestAnimationFrame(tick);
+    if (current >= END) { frame = 0; mode = 'done'; return; }
+    frame = requestAnimationFrame(tick);
   };
   const play = () => {
+    if (mode !== 'idle') return;
     mode = 'playing';
-    jump(keyY());
     startAt = performance.now();
     frame = requestAnimationFrame(tick);
   };
@@ -478,54 +422,18 @@ function initIntro() {
     current = 0;
     render(0);
   };
-  const onScroll = () => {
-    scrollFrame = 0;
-    const y = window.scrollY;
-    const key = keyY();
-    if (mode === 'playing') {
-      if (Math.abs(y - key) > 1) jump(key);
-      return;
-    }
-    // вернулись в самый верх - сцена снова с начала
-    if (mode === 'done') {
-      if (y <= 1) reset();
-      return;
-    }
-    if (y >= key) play();
-    else {
-      current = KEY * clamp(y / key);
-      render(current);
-    }
-  };
-  window.addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(onScroll); }, { passive: true });
+  new IntersectionObserver(([entry]) => {
+    if (entry.intersectionRatio >= .3) play();
+    else if (!entry.isIntersecting) reset();
+  }, { threshold: [0, .3] }).observe(root);
 
-  window.addEventListener('wheel', event => { if (mode === 'playing') event.preventDefault(); }, { passive: false });
-  window.addEventListener('touchmove', event => { if (mode === 'playing') event.preventDefault(); }, { passive: false });
-  const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', 'End', ' ', 'ArrowUp', 'PageUp', 'Home']);
-  window.addEventListener('keydown', event => {
-    if (mode !== 'playing') return;
-    if (event.key === 'Escape') finish();
-    else if (SCROLL_KEYS.has(event.key) && !(event.key === ' ' && event.target.closest?.('input, textarea, button, a, [contenteditable]'))) event.preventDefault();
-  });
-  // переход по ссылке меню не ждёт сцену и не застревает в ключевой точке
-  document.addEventListener('click', event => {
-    const link = event.target.closest?.('a[href^="#"]');
-    if (link && link.getAttribute('href') !== '#top' && mode !== 'done') finish();
-  }, true);
-
-  // при перезагрузке страница открывается сверху, и сцена идёт с начала
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   let resizeFrame = 0;
   new ResizeObserver(() => {
     if (resizeFrame) return;
     resizeFrame = requestAnimationFrame(() => { resizeFrame = 0; measure(); render(current); });
   }).observe(stage);
   measure();
-  if (location.hash && location.hash !== '#top') finish();
-  else {
-    jump(0);
-    render(0);
-  }
+  render(0);
   document.fonts?.ready.then(() => { measure(); render(current); });
 }
 
@@ -706,7 +614,8 @@ function initStudio() {
   const stepsEl = root.querySelector('[data-steps]');
   const tabs = [...root.querySelectorAll('[data-view]')];
 
-  const state = { scenario: SCENARIO_IDS[0], run: null, token: 0, view: 'chat', done: new Set() };
+  const state = { scenario: SCENARIO_IDS[0], run: null, token: 0, view: 'chat', done: new Set(), focus: null };
+  const geo = { W: 0, H: 0, nw: 0, nh: 0, pad: 0, fit: 1, pos: {} };
   const nodeEls = {};
   const edgeEls = {};
 
@@ -776,10 +685,32 @@ function initStudio() {
     scene.style.width = `${W}px`;
     scene.style.height = `${H}px`;
     const pad = narrow ? 14 : 32;
-    const scale = Math.min(1, (canvas.clientWidth - pad * 2) / W);
-    scene.style.transform = `translate(${(canvas.clientWidth - W * scale) / 2}px, ${pad}px) scale(${scale})`;
+    const maxH = narrow ? Infinity : 680;
+    const scale = Math.min(1, (canvas.clientWidth - pad * 2) / W, (maxH - pad * 2) / H);
+    Object.assign(geo, { W, H, nw: NW, nh, pad, fit: scale, pos });
     canvas.style.height = `${Math.ceil(H * scale + pad * 2)}px`;
+    canvas.classList.add('no-anim');
+    camera(state.focus);
+    canvas.offsetHeight;
+    canvas.classList.remove('no-anim');
   };
+
+  // камера: без цели показывает весь сценарий, с целью - приближает блок и держит его по центру
+  function camera(id) {
+    state.focus = id;
+    const { W, H, nw, nh, pad, fit, pos } = geo;
+    const cw = canvas.clientWidth, ch = canvas.clientHeight;
+    if (!id || !pos[id]) {
+      scene.style.transform = `translate(${(cw - W * fit) / 2}px, ${pad}px) scale(${fit})`;
+      return;
+    }
+    const k = Math.max(fit, Math.min(1.25, fit * 1.7));
+    const cx = pos[id].x + nw / 2, cy = pos[id].y + nh / 2;
+    // не уводим край сценария далеко от края холста
+    const x = clamp(cw / 2 - cx * k, Math.min(pad, cw - pad - W * k), Math.max(pad, cw - pad - W * k));
+    const y = clamp(ch / 2 - cy * k, Math.min(pad, ch - pad - H * k), Math.max(pad, ch - pad - H * k));
+    scene.style.transform = `translate(${x}px, ${y}px) scale(${k})`;
+  }
 
   // вкладки чат / JSON
   const setView = view => {
@@ -883,6 +814,7 @@ function initStudio() {
     });
     Object.values(edgeEls).forEach(({ path }) => { path.classList.remove('is-dim', 'is-on'); setLit(path, false); });
     feedEmpty();
+    camera(null);
     stepsList.replaceChildren();
     setHint('Запустите сценарий, и здесь появятся данные каждого шага.');
     setStatus('Готов к запуску');
@@ -938,6 +870,7 @@ function initStudio() {
       el.classList.add('is-running');
       el.querySelector('[data-state]').replaceChildren(h('span', { class: 'node__spin' }));
       setStatus(NODES[id].title, 'running');
+      camera(id);
 
       if (id === 'incoming') {
         addFeed(h('p', { class: 'feed__who', text: 'Клиент' }));
@@ -968,11 +901,13 @@ function initStudio() {
 
       const edgeId = run.edges[i];
       if (edgeId) {
+        camera(run.steps[i + 1]);
         const ok = await travel(edgeId, token);
         if (!ok || !alive()) return;
       }
     }
     runLabel.textContent = 'Запустить снова';
+    camera(null);
     const summary = run.ready ? 'Готово: сделка в CRM, менеджер в курсе' : 'Готово: клиенту задан уточняющий вопрос';
     setStatus(summary, 'done');
     addFeed(h('p', { class: 'feed__done', text: `${summary} · ${run.steps.length} шагов` }));
@@ -1071,51 +1006,156 @@ function initApp() {
   const root = document.querySelector('[data-app]');
   if (!root) return;
   const feed = root.querySelector('[data-app-feed]');
-  const replay = root.querySelector('[data-app-replay]');
+  const welcome = root.querySelector('[data-app-welcome]');
+  const input = root.querySelector('[data-app-input]');
+  const chats = root.querySelector('[data-app-chats]');
+  const replay = document.querySelector('[data-app-replay]');
+  const composer = root.querySelector('[data-app-composer]');
+  const sendBtn = root.querySelector('[data-app-send]');
+  const cursor = root.querySelector('[data-app-cursor]');
   const work = {
     context: root.querySelector('[data-w-context]'),
+    meter: root.querySelector('[data-w-meter]'),
     diff: root.querySelector('[data-w-diff]'),
-    plan: root.querySelector('[data-w-plan]')
+    diffCard: root.querySelector('[data-w-diff-card]'),
+    diffBody: root.querySelector('[data-w-diff-body]'),
+    plan: root.querySelector('[data-w-plan]'),
+    planCard: root.querySelector('[data-w-plan-card]'),
+    planCount: root.querySelector('[data-w-plan-count]')
   };
+  const placeholder = input.textContent;
+  const task = APP_FLOW.find(item => item.type === 'task').text;
   const planSteps = APP_FLOW.filter(item => item.type === 'step').map(item => item.text);
+  const adds = APP_DIFF.filter(line => line.kind === 'add').length;
+  const dels = APP_DIFF.filter(line => line.kind === 'del').length;
+  const file = APP_DIFF.find(line => line.kind === 'meta').text;
   let token = 0;
+  let chat = null;
   // новые строки держим в поле зрения, окно не растёт и не двигает страницу
   new MutationObserver(() => { feed.scrollTop = feed.scrollHeight; }).observe(feed, { childList: true, subtree: true });
 
-  const resetWork = () => {
-    work.context.textContent = '0 файлов';
-    work.diff.textContent = 'нет';
-    work.plan.replaceChildren(...planSteps.map(text => h('li', {}, h('i'), text)));
+  const setContext = percent => {
+    work.context.textContent = `${percent}%`;
+    work.meter.style.width = `${percent}%`;
   };
-  const markPlan = n => [...work.plan.children].forEach((li, i) => {
-    const done = i < n;
-    li.classList.toggle('is-done', done);
-    li.querySelector('i').replaceChildren(...(done ? [icon('check')] : []));
-  });
+  const markPlan = n => {
+    [...work.plan.children].forEach((li, i) => {
+      const done = i < n;
+      li.classList.toggle('is-done', done);
+      li.querySelector('i').replaceChildren(...(done ? [icon('check')] : []));
+    });
+    work.planCount.textContent = `${n}/${planSteps.length}`;
+  };
+  // агент работает: полоска под полем дышит, кнопка отправки становится «стопом»
+  const busy = on => {
+    composer.classList.toggle('is-working', on);
+    sendBtn.classList.toggle('is-busy', on);
+  };
+  const reset = () => {
+    busy(false);
+    cursor.getAnimations().forEach(animation => animation.cancel());
+    feed.replaceChildren();
+    feed.hidden = true;
+    welcome.hidden = false;
+    input.textContent = placeholder;
+    input.classList.remove('is-typing');
+    sendBtn.classList.remove('is-ready');
+    chat?.remove();
+    chat = null;
+    setContext(0);
+    work.diff.textContent = 'нет';
+    work.diffBody.replaceChildren();
+    work.diffCard.classList.remove('is-open');
+    work.planCard.classList.remove('is-open');
+    work.plan.replaceChildren(...planSteps.map(text => h('li', {}, h('i'), h('span', { text }))));
+    work.planCount.textContent = '';
+  };
+  const dots = () => h('i', { class: 'kd-dots' }, h('b'), h('b'), h('b'), h('b'));
+  const stepRow = text => h('div', { class: 'kd-step is-running' }, h('i', {}, dots()), h('span', { text }));
+
+  // фантомный курсор прилетает, жмёт «Разрешить» и улетает. если человек нажал сам, курсор не нужен
+  const phantomClick = async (button, alive) => {
+    await sleep(1300);
+    if (!alive() || !button.isConnected || reduced.matches) return;
+    const box = root.getBoundingClientRect();
+    const rect = button.getBoundingClientRect();
+    const x = (rect.left - box.left + rect.width * .55) / pageZoom();
+    const y = (rect.top - box.top + rect.height * .62) / pageZoom();
+    const at = (dx, dy, scale = 1) => `translate(${x + dx}px, ${y + dy}px) scale(${scale})`;
+    await cursor.animate([
+      { transform: at(170, 150), opacity: 0 },
+      { opacity: 1, offset: .35 },
+      { transform: at(0, 0), opacity: 1 }
+    ], { duration: 1000, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'forwards' }).finished.catch(() => {});
+    if (!alive() || !button.isConnected) return;
+    button.classList.add('is-press');
+    await cursor.animate([{ transform: at(0, 0) }, { transform: at(0, 0, .84) }, { transform: at(0, 0) }], { duration: 260, fill: 'forwards' }).finished.catch(() => {});
+    button.classList.remove('is-press');
+    if (!alive() || !button.isConnected) return;
+    button.click();
+    cursor.animate([
+      { transform: at(0, 0), opacity: 1 },
+      { transform: at(140, -110, .9), opacity: 0 }
+    ], { duration: 800, easing: 'cubic-bezier(.4, 0, .7, .2)', fill: 'forwards' });
+  };
+  const finishRow = row => {
+    row.classList.remove('is-running');
+    row.querySelector('i').replaceChildren(icon('check'));
+  };
 
   const play = async () => {
     const my = ++token;
     const alive = () => my === token;
-    feed.replaceChildren();
-    resetWork();
+    reset();
+
+    // задача набирается в поле ввода, как в приложении. с текстом кнопка синеет
+    input.classList.add('is-typing');
+    sendBtn.classList.add('is-ready');
+    if (!reduced.matches) {
+      for (let i = 1; i <= task.length; i += 1) {
+        input.textContent = task.slice(0, i);
+        await new Promise(resolve => setTimeout(resolve, 24));
+        if (!alive()) return;
+      }
+      await sleep(300);
+      if (!alive()) return;
+    }
+    input.textContent = placeholder;
+    input.classList.remove('is-typing');
+    sendBtn.classList.add('is-press');
+    await sleep(140);
+    sendBtn.classList.remove('is-press');
+    welcome.hidden = true;
+    feed.hidden = false;
+    sendBtn.classList.remove('is-ready');
+    busy(true);
+    chat = h('span', { class: 'dx-chat is-active' }, h('b', { text: 'Лимит запросов к /orders' }), h('small', { text: 'сейчас' }));
+    chats.querySelector('.dx-proj').after(chat);
+    feed.append(h('div', { class: 'kd-task', text: task }));
+    setContext(4);
+    const thinking = h('p', { class: 'kd-status' }, dots(), h('span', { text: 'Думаю…' }));
+    await sleep(350);
+    feed.append(thinking);
+    await sleep(1100);
+    if (!alive()) return;
+    thinking.remove();
+
     let stepsDone = 0;
     for (const item of APP_FLOW) {
-      if (item.type === 'task') {
-        feed.append(h('div', { class: 'kd-task', text: item.text }));
-        await sleep(700);
-      } else if (item.type === 'step') {
-        const row = h('div', { class: 'kd-step is-running' }, h('i', {}, h('span', { class: 'node__spin' })), h('span', { text: item.text }));
+      if (item.type === 'step') {
+        if (!stepsDone) {
+          work.planCard.classList.add('is-open');
+          markPlan(0);
+        }
+        const row = stepRow(item.text);
         feed.append(row);
-        await sleep(800);
+        await sleep(850);
         if (!alive()) return;
-        row.classList.remove('is-running');
-        row.querySelector('i').replaceChildren(icon('check'));
+        finishRow(row);
         stepsDone += 1;
         markPlan(stepsDone);
-        work.context.textContent = stepsDone === 1 ? '2 файла' : '3 файла';
+        setContext([4, 9, 12, 14][stepsDone]);
       } else if (item.type === 'diff') {
-        const adds = APP_DIFF.filter(line => line.kind === 'add').length;
-        const dels = APP_DIFF.filter(line => line.kind === 'del').length;
         const card = h('div', { class: 'kd-diff', role: 'group', 'aria-label': 'Изменения в файле' });
         feed.append(card);
         for (const line of APP_DIFF) {
@@ -1127,7 +1167,9 @@ function initApp() {
           }
           if (!alive()) return;
         }
-        work.diff.textContent = `+${adds} −${dels} в api/runs.py`;
+        work.diff.textContent = `+${adds} −${dels}`;
+        work.diffBody.replaceChildren(h('span', { class: 'dx-file' }, h('b', { text: file.split('/').pop() }), h('small', { text: file.split('/').slice(0, -1).join('/') }), h('em', { class: 'plus', text: `+${adds}` }), h('em', { class: 'minus', text: `−${dels}` })));
+        work.diffCard.classList.add('is-open');
         await sleep(500);
       } else if (item.type === 'permission') {
         const allow = h('button', { type: 'button', class: 'kd-allow', text: 'Разрешить' });
@@ -1142,30 +1184,41 @@ function initApp() {
         const allowed = await new Promise(resolve => {
           allow.addEventListener('click', () => resolve(true), { once: true });
           deny.addEventListener('click', () => resolve(false), { once: true });
+          phantomClick(allow, () => alive() && !card.classList.contains('is-answered'));
         });
         if (!alive()) return;
         card.classList.add('is-answered');
-        card.append(h('span', { class: 'kd-perm__done', text: allowed ? 'Разрешено человеком' : 'Отклонено человеком' }));
+        card.append(h('span', { class: 'kd-perm__done', text: allowed ? 'Разрешено' : 'Отклонено' }));
         if (!allowed) {
           feed.append(h('div', { class: 'kd-result kd-result--muted' }, h('b', { text: 'Отклонено' }), h('span', { text: 'Команда не выполнена. Правка осталась на просмотр, её можно откатить.' })));
+          busy(false);
           return;
         }
-        const row = h('div', { class: 'kd-step is-running' }, h('i', {}, h('span', { class: 'node__spin' })), h('span', { text: `Запускаю ${item.command}` }));
+        const row = stepRow(`Запускаю ${item.command}`);
         feed.append(row);
         await sleep(1100);
         if (!alive()) return;
-        row.classList.remove('is-running');
-        row.querySelector('i').replaceChildren(icon('check'));
+        finishRow(row);
+        setContext(17);
       } else if (item.type === 'result') {
+        busy(false);
         feed.append(h('div', { class: 'kd-result' }, h('b', { text: item.text }), h('span', { text: item.detail })));
       }
       if (!alive()) return;
     }
   };
 
-  resetWork();
-  replay.addEventListener('click', play);
-  onceVisible(root, play, .4);
+  // «Повторить» появляется, только когда сценарий доиграл. место под кнопкой остаётся, поэтому ничего не сдвигается
+  const run = async () => {
+    replay?.classList.add('is-hidden');
+    const playing = play();
+    const mine = token;
+    await playing;
+    if (mine === token) replay?.classList.remove('is-hidden');
+  };
+  reset();
+  replay?.addEventListener('click', run);
+  onceVisible(root, run, .4);
 }
 
 /* копирование почты */
