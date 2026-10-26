@@ -9,10 +9,11 @@
   <title>Иван Агошков - AI-инженер</title>
   <meta name="description" content="AI-инженер (Python). 5+ AI-агентов в production, 600+ пользователей и 18 000+ вызовов AI в день. Докки, Докки Studio, Докки App.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=20261021-key">
+  <link rel="preload" href="assets/fonts/montserrat-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/unbounded-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=20261026-cv">
   <script>document.documentElement.classList.add('js')</script>
-  <script type="module" src="script.js?v=20261021-key"></script>
+  <script type="module" src="script.js?v=20261026-cv"></script>
 </head>
 <body>
   <svg class="sprite" aria-hidden="true" focusable="false">
@@ -21,7 +22,8 @@
     <symbol id="i-split" viewBox="0 0 24 24"><path d="M6 3v6a4 4 0 0 0 4 4h4a4 4 0 0 1 4 4v4"/><path d="M6 21v-5"/><circle cx="6" cy="6" r=".5"/><path d="M15 18l3 3 3-3"/></symbol>
     <symbol id="i-stack" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></symbol>
-    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-arrow"  viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
     <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 6v12M15.5 6v12"/></symbol>
@@ -38,43 +40,34 @@
 
   <a class="skip" href="#main">К содержанию</a>
 
-  <header class="nav" data-nav>
-    <div class="nav__inner">
-      <a class="nav__brand" href="#top" aria-label="Иван Агошков, в начало">
-        <img src="assets/goshkow-mark.svg" alt="" width="26" height="16">
-        <span>Иван Агошков</span>
-      </a>
-      <nav class="nav__links" id="nav-links" aria-label="Разделы">
-        <a href="#overview">Обзор</a>
-        <a href="#studio">Studio</a>
-        <a href="#dokky">Докки</a>
-        <a href="#app">Докки App</a>
-        <a href="#results">Результаты</a>
-        <a href="#experience">Опыт</a>
-      </nav>
-      <div class="nav__actions">
-        <a class="nav__pdf" href="assets/Ivan-Agoshkov-CV.pdf" target="_blank" rel="noopener">Резюме PDF</a>
-        <a class="pill pill--blue pill--sm" href="https://t.me/goshkow" target="_blank" rel="noopener">Написать</a>
-        <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" data-nav-toggle>
-          <span class="sr-only">Меню</span><i></i><i></i>
-        </button>
-      </div>
+  <header class="eco" data-eco>
+    <a class="eco__brand" href="#top" aria-label="Иван Агошков, в начало"><img src="assets/goshkow-mark.svg" alt="" width="26" height="16"><span>Иван Агошков</span></a>
+    <nav class="eco__links" aria-label="Разделы">
+      <a href="#studio">Studio</a>
+      <a href="#dokky">Докки</a>
+      <a href="#app">App</a>
+      <a href="#results">Результаты</a>
+      <a href="#experience">Опыт</a>
+    </nav>
+    <div class="eco__auth">
+      <a class="eco__login" href="assets/Ivan-Agoshkov-CV.pdf" target="_blank" rel="noopener">PDF</a>
+      <a class="eco__cta" href="https://t.me/goshkow" target="_blank" rel="noopener">Написать</a>
     </div>
   </header>
 
   <main id="main">
     <!-- hero: пустая Studio по прокрутке выпрямляется, курсор собирает сценарий, окно уходит вверх -->
-    <section class="intro" id="top" aria-labelledby="hero-title" data-intro>
+    <section data-dots="rainbow" class="intro" id="top" aria-labelledby="hero-title" data-intro>
       <div class="intro__stage">
         <div class="hero__copy" data-intro-copy>
-          <p class="hero__eyebrow">AI-инженер · Python</p>
+          <img class="hero__mark" src="assets/goshkow-mark.svg" alt="" width="64" height="40">
           <h1 id="hero-title" class="hero__title">Иван Агошков</h1>
-          <p class="hero__lead">AI-боты и голосовые агенты<br class="br-sm"> для продаж.</p>
+          <p class="hero__lead">AI-инженер (Python). Делаю AI-ботов и голосовых агентов<br>для продаж, интегрирую с CRM</p>
           <div class="hero__cta">
+            <a class="link link--down" href="#overview">Посмотреть в работе <svg aria-hidden="true"><use href="#i-down"/></svg></a>
             <a class="pill pill--blue" href="https://t.me/goshkow" target="_blank" rel="noopener">Написать в Telegram</a>
-            <a class="link" href="#studio">Посмотреть в работе <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
           </div>
-          <p class="hero__meta">Готов выйти сразу · удалённо или гибрид · Екатеринбург</p>
+          <p class="hero__meta">10+ запущенных AI-проектов · 18 000+ вызовов AI в день · удалённо или гибрид · готов выйти сразу</p>
         </div>
 
         <div class="intro__win" aria-hidden="true" data-intro-win>
@@ -107,14 +100,14 @@
     </section>
 
     <!-- коротко о главном: галерея крупных карточек -->
-    <section class="highlights" id="overview" aria-labelledby="highlights-title">
+    <section class="screen highlights" id="overview" aria-labelledby="highlights-title">
       <div class="wrap">
-        <h2 id="highlights-title" class="section-title reveal">Главное.</h2>
+        <h2 id="highlights-title" class="section-title reveal">Главное</h2>
       </div>
       <div class="gallery" data-gallery>
         <ul class="gallery__track" data-gallery-track tabindex="0" aria-label="Главное, листайте стрелками">
           <li class="tile tile--agents" data-gallery-item>
-            <p class="tile__head">5+ AI-агентов в production.<br><span>Чат-боты продаж, голосовые агенты, суммаризаторы и автоматизации. Один IT-специалист в компании.</span></p>
+            <p class="tile__head">5+ AI-агентов в production<br><span>Чат-боты продаж, голосовые агенты, суммаризаторы и автоматизации. Один IT-специалист в компании.</span></p>
             <ul class="agents" aria-label="Типы агентов">
               <li><i></i>Чат-бот продаж<em>работает</em></li>
               <li><i></i>Голосовой агент<em>работает</em></li>
@@ -124,22 +117,22 @@
             </ul>
           </li>
           <li class="tile tile--calls" data-gallery-item>
-            <p class="tile__head">600+ пользователей в день.<br><span>AI вызывается тысячи раз за день.</span></p>
+            <p class="tile__head">600+ пользователей в день<br><span>AI вызывается тысячи раз за день.</span></p>
             <p class="tile__big"><span class="grad" data-count="18000" data-suffix="+">18 000+</span><small>вызовов AI в день</small></p>
           </li>
           <li class="tile tile--speed" data-gallery-item>
-            <p class="tile__head">Заявки обрабатываются в 10 раз быстрее.<br><span>Записей без человека стало до 7 в неделю. Раньше было 1–2, и с человеком.</span></p>
+            <p class="tile__head">Заявки обрабатываются в 10 раз быстрее<br><span>Записей без человека стало до 7 в неделю. Раньше было 1–2, и с человеком.</span></p>
             <div class="bars" aria-hidden="true">
               <div class="bars__row"><span>Было</span><i style="--w:10%"></i></div>
               <div class="bars__row bars__row--now"><span>Стало</span><i style="--w:100%"></i></div>
             </div>
           </li>
           <li class="tile tile--human" data-gallery-item>
-            <p class="tile__head">Бота не отличают от человека.<br><span>Более 90% собеседников не поняли, что говорят с ботом.</span></p>
+            <p class="tile__head">Бота не отличают от человека<br><span>Более 90% собеседников не поняли, что говорят с ботом.</span></p>
             <p class="tile__big"><span class="grad grad--warm">90%+</span></p>
           </li>
           <li class="tile tile--oss" data-gallery-item>
-            <p class="tile__head">Открытый проект ZapretHub.<br><span>Хаб для VPN, proxy и DNS-инструментов. Проект завершён.</span></p>
+            <p class="tile__head">Открытый проект ZapretHub<br><span>Хаб для VPN, proxy, zapret и DNS-инструментов с открытым кодом. Проект завершён.</span></p>
             <p class="tile__big"><span class="grad grad--green" data-count="60000" data-suffix="+">60 000+</span><small>скачали и пользовались · 300+ звёзд на GitHub</small></p>
           </li>
         </ul>
@@ -162,7 +155,7 @@
     </section>
 
     <!-- манифест -->
-    <section class="manifest" aria-label="Подход">
+    <section class="screen manifest" aria-label="Подход">
       <div class="wrap">
         <p class="manifest__text reveal">
           <span>Весь цикл автоматизации делаю сам.</span>
@@ -174,11 +167,10 @@
     </section>
 
     <!-- Studio: живой сценарий -->
-    <section class="studio" id="studio" aria-labelledby="studio-title">
+    <section class="screen studio" id="studio" aria-labelledby="studio-title">
       <div class="wrap">
         <header class="product-head reveal">
-          <p class="product-head__eyebrow"><img src="assets/brand/dokky-mark.png" alt="" width="22" height="22"> Докки Studio</p>
-          <h2 id="studio-title" class="product-head__title">Сценарий агента<br>в Докки Studio.</h2>
+          <h2 id="studio-title" class="product-head__title">Сценарий агента в Докки Studio</h2>
           <p class="product-head__lead">Конструктор агентных процессов. Каналы, голос, AI, база знаний и CRM собираются в один сценарий, у каждого блока видны данные на входе и выходе.</p>
         </header>
       </div>
@@ -231,60 +223,21 @@
       </div>
     </section>
 
-    <!-- Докки -->
-    <section class="dokky" id="dokky" aria-labelledby="dokky-title">
-      <div class="wrap dokky__grid">
-        <header class="product-head product-head--left reveal">
-          <p class="product-head__eyebrow"><img src="assets/brand/dokky-mark.png" alt="" width="22" height="22"> Докки</p>
-          <h2 id="dokky-title" class="product-head__title">Задайте Докки<br>вопрос обо мне.</h2>
-          <p class="product-head__lead">Личный AI-ассистент для знаний, файлов и многошаговых задач. Работает месяц, клиенты приходят по рекомендациям, без рекламы.</p>
-          <div class="asks" role="group" aria-label="Вопросы Докки" data-asks></div>
-          <a class="link link--light" href="https://dokky.goshkow.com" target="_blank" rel="noopener">dokky.goshkow.com <svg aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a>
-        </header>
-
-        <div class="phone reveal" aria-label="Интерфейс Докки, учебный пример">
-          <div class="phone__frame">
-            <div class="phone__screen">
-              <div class="phone__status" aria-hidden="true">
-                <span class="phone__time">9:41</span>
-                <i class="phone__island"></i>
-                <span class="phone__icons">
-                  <svg class="sb-signal" viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
-                  <svg class="sb-wifi" viewBox="0 0 17 12" width="17" height="12"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.4 3.9a10 10 0 0 1 14.200 0"/><path d="M3.900 6.400a6.500 6.500 0 0 1 9.200 0"/></g><path d="M8.500 11 6.400 8.900a3 3 0 0 1 4.200 0Z"/></svg>
-                  <svg class="sb-battery" viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="22" height="12" rx="3.800" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2.500"/><path d="M24.200 4.500v4c.8-.3 1.500-1.100 1.500-2s-.7-1.700-1.500-2Z" opacity=".5"/></svg>
-                </span>
-              </div>
-              <div class="dk-top" aria-hidden="true">
-                <span class="dk-round"><svg><use href="#i-menu"/></svg></span>
-                <span class="dk-seg"><b>Чат</b><span>Поиск</span></span>
-                <span class="dk-round"><svg><use href="#i-history"/></svg></span>
-              </div>
-              <div class="dk-body" data-dk-body aria-live="polite">
-                <div class="dk-empty" data-dk-empty>
-                  <img src="assets/brand/dokky-mark.png" alt="" width="44" height="44">
-                  <p>Какая задача у нас сегодня?</p>
-                </div>
-              </div>
-              <div class="dk-composer" aria-hidden="true">
-                <span class="dk-composer__plus"><svg><use href="#i-plus"/></svg></span>
-                <span class="dk-composer__input" data-dk-input>Спросить Докки</span>
-                <span class="dk-composer__mic"><svg><use href="#i-mic"/></svg></span>
-                <span class="dk-composer__send"><svg><use href="#i-up"/></svg></span>
-              </div>
-            </div>
-          </div>
-          <p class="phone__note">Подготовленные ответы по фактам резюме</p>
-          <a class="model-credit" href="https://sketchfab.com/3d-models/iphone-17-pro-max-87fc1df741384124a8ce0226d2b2058d" target="_blank" rel="noopener noreferrer">3D: MajdyModels · CC BY 4.0</a>
-        </div>
+    <!-- Докки: пример диалога, вопрос бабблом и ответ текстом -->
+    <section data-dots="rainbow" class="screen convo" id="dokky" aria-labelledby="dokky-title">
+      <div class="wrap convo__wrap">
+        <h2 id="dokky-title" class="section-title reveal">Спросите Докки обо мне</h2>
+        <p class="convo__lead reveal">Докки - мой AI-ассистент: знания, файлы, интернет и многошаговые задачи. Работает месяц, клиенты приходят по рекомендациям. <a href="https://dokky.goshkow.com" target="_blank" rel="noopener">dokky.goshkow.com</a></p>
+        <div class="convo__stage" data-convo aria-live="polite"></div>
+        <div class="convo__asks" role="group" aria-label="Вопросы Докки" data-asks></div>
       </div>
     </section>
 
     <!-- Докки App -->
-    <section class="app" id="app" aria-labelledby="app-title">
+    <section class="screen app" id="app" aria-labelledby="app-title">
       <div class="wrap">
         <header class="product-head reveal">
-          <p class="product-head__eyebrow product-head__eyebrow--dark"><img src="assets/brand/dokky-icon.webp" alt="" width="22" height="22"> Докки App · бета</p>
-          <h2 id="app-title" class="product-head__title">Докки App:<br>агент для кода.</h2>
+          <h2 id="app-title" class="product-head__title">Докки App: агент для кода</h2>
           <p class="product-head__lead">Настольное приложение Докки для разработки с собственным агентным циклом. Сначала план, потом правка, и ни одной команды без разрешения.</p>
         </header>
       </div>
@@ -337,9 +290,9 @@
     </section>
 
     <!-- результаты -->
-    <section class="results" id="results" aria-labelledby="results-title">
+    <section class="screen results" id="results" aria-labelledby="results-title">
       <div class="wrap">
-        <h2 id="results-title" class="section-title section-title--dark reveal">Результаты.</h2>
+        <h2 id="results-title" class="section-title section-title--dark reveal">Результаты</h2>
 
         <div class="spec reveal">
           <div class="spec__group">
@@ -374,16 +327,17 @@
     </section>
 
     <!-- опыт -->
-    <section class="experience" id="experience" aria-labelledby="experience-title">
+    <section class="screen experience" id="experience" aria-labelledby="experience-title">
       <div class="wrap">
-        <h2 id="experience-title" class="section-title section-title--dark reveal">Опыт.</h2>
+        <h2 id="experience-title" class="section-title section-title--dark reveal">Опыт</h2>
         <ol class="timeline">
           <li class="job reveal">
             <p class="job__when">Декабрь 2025 - октябрь 2026</p>
             <div>
               <h3 class="job__title">AI Engineer<span>Стороженко и партнеры</span></h3>
               <p>Единственный IT-специалист. AI-боты для продаж, голосовые агенты с IP-телефонией, суммаризаторы, интеграции с CRM. От архитектуры до запуска в production.</p>
-              <p class="job__hard">Сложное: галлюцинации, нагрузка, качество распознавания речи. Решал промптами, рефакторингом внутренних структур и подбором моделей.</p>
+              <p class="job__hard">Сложное: галлюцинации, нагрузка, качество распознавания речи и интеграции. Решал промптами, рефакторингом внутренних структур и подбором моделей.</p>
+              <p class="job__hard">OpenAI, RAG и базы знаний, tool calling, своя оркестрация, STT/TTS, IP-телефония, CRM, API мессенджеров.</p>
             </div>
           </li>
           <li class="job reveal">
@@ -397,7 +351,7 @@
             <p class="job__when">Сейчас</p>
             <div>
               <h3 class="job__title">Свои продукты<span>Докки · Докки Studio · Докки App</span></h3>
-              <p>Ассистент работает месяц, Studio выходит в ноябре 2026, Докки App в бете. Архитектура, оркестрация, backend и интерфейсы делаю сам.</p>
+              <p>Докки работает месяц, клиенты приходят из Telegram-канала и по рекомендациям. Studio в закрытом тесте, релиз в ноябре 2026. Докки App в бете. Архитектура, AI-оркестрация, backend и интерфейс - сам.</p>
             </div>
           </li>
         </ol>
@@ -405,37 +359,38 @@
     </section>
 
     <!-- стек -->
-    <section class="stack" id="stack" aria-labelledby="fit-title stack-title">
+    <section class="screen stack" id="stack" aria-labelledby="fit-title stack-title">
       <div class="wrap">
-        <h2 id="fit-title" class="section-title section-title--dark reveal">Под роль AI-инженера.</h2>
+        <h2 id="fit-title" class="section-title section-title--dark reveal">Под роль AI-инженера</h2>
         <div class="stack__grid fit-grid">
           <div class="stack__col reveal"><h3>Нахожу, что автоматизировать</h3><p>Был единственным IT-специалистом: сам брал процессы (заявки, запись, звонки) и закрывал их агентами.</p><p>Решения принимал вместе с руководителем.</p></div>
           <div class="stack__col reveal"><h3>Агенты и боты до запуска</h3><p>5+ агентов в production, 18 000+ вызовов AI в день.</p><p>RAG, tool calling, своя оркестрация, голос (STT/TTS).</p></div>
           <div class="stack__col reveal"><h3>Интеграции и данные</h3><p>CRM, мессенджеры, IP-телефония, базы знаний.</p><p>Python, FastAPI, PostgreSQL, Redis, REST API.</p></div>
           <div class="stack__col reveal"><h3>Считаю результат</h3><p>До 7 записей в неделю без человека вместо 1-2, заявки в 10 раз быстрее, удержание в чате в 3 раза выше.</p><p>Расходы на AI тоже снизил.</p></div>
         </div>
-        <h2 id="stack-title" class="section-title section-title--dark reveal stack__sub">Стек.</h2>
-        <div class="stack__grid">
-          <div class="stack__col reveal"><h3>AI</h3><p>OpenAI · DeepSeek · YandexGPT · Ollama</p><p>RAG · tool calling · агенты · STT/TTS</p></div>
-          <div class="stack__col reveal"><h3>Backend</h3><p>Python · FastAPI · Node.js</p><p>PostgreSQL · Redis · WebSockets</p></div>
-          <div class="stack__col reveal"><h3>Интеграции</h3><p>CRM · мессенджеры · IP-телефония</p><p>webhooks · n8n · REST API</p></div>
-          <div class="stack__col reveal"><h3>Интерфейсы и запуск</h3><p>React · Telegram WebApp</p><p>Docker · Linux · Nginx · CI/CD</p></div>
+        <h2 id="stack-title" class="section-title section-title--dark reveal stack__sub">Стек</h2>
+        <div class="stack__grid stack__grid--5">
+          <div class="stack__col reveal"><h3>AI и оркестрация</h3><p>OpenAI · DeepSeek · YandexGPT · Ollama</p><p>RAG · tool calling · AI agents</p></div>
+          <div class="stack__col reveal"><h3>Backend и данные</h3><p>Python · FastAPI · Node.js</p><p>PostgreSQL · Redis · REST API · WebSockets</p></div>
+          <div class="stack__col reveal"><h3>CRM и workflow</h3><p>CRM · API мессенджеров · n8n</p><p>Webhooks · STT/TTS · IP-телефония</p></div>
+          <div class="stack__col reveal"><h3>Frontend</h3><p>React · JavaScript</p><p>HTML · CSS · Telegram WebApp</p></div>
+          <div class="stack__col reveal"><h3>Инфраструктура</h3><p>Docker · Linux · Nginx</p><p>Git · CI/CD · VPS</p></div>
         </div>
         <p class="stack__note reveal">Английский B2–C1. Высшее не окончено: программа отставала от индустрии на несколько лет, дальше учусь сам.</p>
       </div>
     </section>
 
     <!-- контакты -->
-    <section class="contact" id="contact" aria-labelledby="contact-title">
+    <section data-dots="white" class="screen contact" id="contact" aria-labelledby="contact-title">
       <div class="wrap">
         <img class="contact__mark reveal" src="assets/goshkow-mark.svg" alt="" width="64" height="40">
-        <h2 id="contact-title" class="contact__title reveal">Готов делать<br>агентов у вас.</h2>
+        <h2 id="contact-title" class="contact__title reveal">Готов делать агентов у вас</h2>
         <p class="contact__lead reveal">Готов приступить сразу. Удалённо или гибрид.</p>
         <div class="contact__cta reveal">
-          <a class="pill pill--blue" href="https://t.me/goshkow" target="_blank" rel="noopener">Написать в Telegram</a>
           <button type="button" class="pill pill--ghost" data-copy="iagoshkow@gmail.com">
             <svg aria-hidden="true"><use href="#i-copy"/></svg><span data-copy-label>iagoshkow@gmail.com</span>
           </button>
+          <a class="pill pill--blue" href="https://t.me/goshkow" target="_blank" rel="noopener">Написать в Telegram</a>
         </div>
         <ul class="contact__links reveal">
           <li><a class="link" href="assets/Ivan-Agoshkov-CV.pdf" target="_blank" rel="noopener">Резюме PDF <svg aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
@@ -443,6 +398,12 @@
           <li><a class="link" href="https://cv.goshkow.com/" target="_blank" rel="noopener">Полное CV <svg aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
         </ul>
       </div>
+      <footer class="foot">
+        <div class="wrap">
+          <span>© 2026 Иван Агошков</span>
+          <span>Имена, сделки и проекты в демо вымышлены</span>
+        </div>
+      </footer>
     </section>
   </main>
 

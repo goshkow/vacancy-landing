@@ -3,3 +3,7 @@ node_modules/
 __pycache__/
 *.pyc
 review/
+
+# рабочие заметки, в репозиторий не идут
+PROJECT_CONTEXT.md
+TASKS.md

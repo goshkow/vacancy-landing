@@ -1,4 +1,4 @@
-import { NODES, EDGES, SCENARIO_IDS, scenarioLabel, buildRun, DOKKY_QUESTIONS, findQuestion, APP_FLOW, APP_DIFF, INTRO_NODES, INTRO_EDGES, INTRO_RUN } from './demo-data.js?v=20261021-key';
+import { NODES, EDGES, SCENARIO_IDS, scenarioLabel, buildRun, DOKKY_QUESTIONS, findQuestion, APP_FLOW, APP_DIFF, INTRO_NODES, INTRO_EDGES, INTRO_RUN } from './demo-data.js?v=20261026-cv';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -43,27 +43,43 @@ function onceVisible(el, callback, threshold = .4) {
 }
 
 /* навигация */
+// шапка как у лендинга Докки: на компьютере закреплена и светлеет над светлыми блоками, пункт текущего раздела подсвечен
 function initNav() {
-  const nav = document.querySelector('[data-nav]');
-  const toggle = nav.querySelector('[data-nav-toggle]');
-  const links = [...nav.querySelectorAll('.nav__links a')];
-  const setOpen = open => {
-    nav.classList.toggle('is-open', open);
-    toggle.setAttribute('aria-expanded', String(open));
-  };
-  toggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
-  links.forEach(link => link.addEventListener('click', () => setOpen(false)));
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && nav.classList.contains('is-open')) {
-      setOpen(false);
-      toggle.focus();
+  const root = document.documentElement;
+  const nav = document.querySelector('[data-eco]');
+  const sections = [...document.querySelectorAll('main > section')];
+  const links = [...nav.querySelectorAll('.eco__links a')];
+  const desktop = matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)');
+  let colors = new Map();
+  const colorOf = el => {
+    for (let node = el; node; node = node.parentElement) {
+      const m = getComputedStyle(node).backgroundColor.match(/[\d.]+/g);
+      if (m && (m[3] === undefined || +m[3] > .5)) return m.slice(0, 3).map(Number);
     }
-  });
-  document.addEventListener('click', event => {
-    if (nav.classList.contains('is-open') && !nav.contains(event.target)) setOpen(false);
-  });
+    return [0, 0, 0];
+  };
+  const isLight = ([r, g, b]) => (.2126 * r + .7152 * g + .0722 * b) / 255 > .6;
+  const measure = () => { colors = new Map(sections.map(el => [el, colorOf(el)])); };
+  let frame = 0;
+  const update = () => {
+    frame = 0;
+    root.classList.toggle('eco-pinned', desktop.matches);
+    if (!desktop.matches) { nav.classList.remove('is-light'); return; }
+    const mid = nav.offsetHeight / 2;
+    const under = sections.find(el => {
+      const { top, bottom } = el.getBoundingClientRect();
+      return top <= mid && bottom > mid;
+    });
+    nav.classList.toggle('is-light', Boolean(under && isLight(colors.get(under))));
+  };
+  const queue = () => { if (!frame) frame = requestAnimationFrame(update); };
+  measure();
+  update();
+  addEventListener('scroll', queue, { passive: true });
+  addEventListener('resize', () => { measure(); queue(); }, { passive: true });
+  desktop.addEventListener('change', queue);
 
-  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  const targets = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
   const io = new IntersectionObserver(entries => {
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
@@ -73,7 +89,76 @@ function initNav() {
       });
     }
   }, { rootMargin: '-45% 0px -50% 0px' });
-  sections.forEach(section => io.observe(section));
+  targets.forEach(section => io.observe(section));
+}
+
+/* точечные пятна по краям блоков, взяты с лендинга Докки */
+function initDots() {
+  if (!matchMedia('(min-width: 861px) and (hover: hover) and (pointer: fine)').matches) return;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  for (const section of document.querySelectorAll('[data-dots]')) {
+    const [tone, mode] = section.dataset.dots.split(' ');
+    // левый и правый край в разной высоте, чтобы пятна не стояли зеркально
+    // центры за краями экрана: в блок заходит только мягкий край пятна
+    const places = [[rnd(-14, -6), rnd(8, 40)], [rnd(106, 114), rnd(45, 85)], [rnd(-14, -6), rnd(60, 92)], [rnd(106, 114), rnd(5, 30)]]
+      .sort(() => Math.random() - .5).slice(0, mode === 'faq' ? 2 : 3);
+    if (mode === 'faq') places.push([Math.random() < .5 ? rnd(-10, -4) : rnd(104, 110), 100]);
+    for (const [x, y] of places) {
+      const spot = document.createElement('div');
+      spot.className = `dots-spot${tone === 'white' ? '' : ` dots-spot--${tone}`}`;
+      spot.setAttribute('aria-hidden', 'true');
+      const size = Math.round(rnd(760, 1100));
+      const ar = rnd(.8, 1.3);
+      Object.entries({
+        '--x': `${x.toFixed(1)}%`, '--y': `${y.toFixed(1)}%`, '--s': `${size}px`,
+        '--ar': ar.toFixed(2), '--o': (tone === 'rainbow' ? rnd(.35, .5) : rnd(.28, .4)).toFixed(2)
+      }).forEach(([k, v]) => spot.style.setProperty(k, v));
+      paintDots(spot, tone, size, Math.round(size / ar), rnd(0, Math.PI * 2));
+      section.prepend(spot);
+    }
+  }
+}
+
+// раньше пятно было css-маской из трёх слоёв (сетка, спад, svg-шум), и видеокарта пересчитывала её
+// на каждом кадре скролла. теперь пятно один раз рисуется в картинку, а дышит только прозрачностью
+function paintDots(spot, tone, w, h, angle) {
+  const step = 9;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const smooth = (a, b, t) => a + (b - a) * t;
+  for (let y = step / 2; y < h; y += step) {
+    for (let x = step / 2; x < w; x += step) {
+      const r = Math.hypot((x - w / 2) / (w / 2), (y - h / 2) / (h / 2));
+      if (r >= 1) continue;
+      // тот же спад, что был в маске: 100% до 10%, 50% к 45%, ноль к краю
+      const fall = r < .1 ? 1 : r < .45 ? smooth(1, .5, (r - .1) / .35) : smooth(.5, 0, (r - .45) / .55);
+      // осыпающийся край: контрастный шум, как раньше давал feTurbulence в маске
+      const grain = Math.min(1, Math.max(0, 4 * (Math.random() + Math.random()) / 2 - 2));
+      const a = fall * grain;
+      if (a < .02) continue;
+      ctx.globalAlpha = a;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-in';
+  if (tone === 'rainbow' && ctx.createConicGradient) {
+    const g = ctx.createConicGradient(angle, w / 2, h / 2);
+    ['#f59bff', '#ff8c6e', '#ffd77f', '#86e8a8', '#6ccaff', '#9a8cff', '#f59bff'].forEach((c, i, all) => g.addColorStop(i / (all.length - 1), c));
+    ctx.fillStyle = g;
+  } else {
+    ctx.fillStyle = tone === 'black' ? 'rgba(0, 0, 0, .7)' : tone === 'rainbow' ? '#9a8cff' : 'rgba(255, 255, 255, .5)';
+  }
+  ctx.fillRect(0, 0, w, h);
+  canvas.toBlob(blob => {
+    if (blob) spot.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
+  });
 }
 
 /* появление блоков */
@@ -932,38 +1017,15 @@ function initStudio() {
 
 /* Докки */
 // 3D-модель iPhone грузится отдельно: без WebGL остаётся плоская рамка
-async function initPhone3d() {
-  const frame = document.querySelector('.phone__frame');
-  const screen = frame?.querySelector('.phone__screen');
-  if (!frame || !screen) return;
-  try {
-    const probe = document.createElement('canvas');
-    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) return;
-    const { mountPhone } = await import('./assets/vendor/phone3d.js');
-    await mountPhone(frame, screen);
-  } catch {
-    frame.classList.remove('has-webgl');
-    screen.style.transform = '';
-  }
-}
-
+/* Докки: вопрос бабблом, короткий поиск, ответ проявляется по словам. как пример диалога на лендинге Докки */
 function initDokky() {
+  const stage = document.querySelector('[data-convo]');
   const asks = document.querySelector('[data-asks]');
-  const body = document.querySelector('[data-dk-body]');
-  const input = document.querySelector('[data-dk-input]');
-  if (!asks || !body) return;
-  const empty = body.querySelector('[data-dk-empty]');
+  if (!stage || !asks) return;
   let token = 0;
   const buttons = DOKKY_QUESTIONS.map(item => {
     const btn = h('button', { type: 'button', 'aria-pressed': 'false', 'data-ask': item.id, text: item.question });
-    btn.addEventListener('click', () => {
-      // на узком экране вопросы стоят над телефоном, поэтому подводим к ответу
-      const phone = document.querySelector('.phone');
-      if (phone && phone.getBoundingClientRect().top > window.innerHeight * .5) {
-        phone.scrollIntoView({ block: 'center', behavior: reduced.matches ? 'auto' : 'smooth' });
-      }
-      ask(item.id);
-    });
+    btn.addEventListener('click', () => ask(item.id));
     asks.append(btn);
     return btn;
   });
@@ -973,47 +1035,35 @@ function initDokky() {
     const my = ++token;
     const alive = () => my === token;
     buttons.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.ask === id)));
-    body.replaceChildren();
-    empty.hidden = true;
-
-    // вопрос набирается в поле ввода, как в настоящем чате
-    input.classList.add('is-typing');
-    if (!reduced.matches) {
-      for (let i = 1; i <= item.question.length; i += 1) {
-        input.textContent = item.question.slice(0, i);
-        await new Promise(resolve => setTimeout(resolve, 22));
-        if (!alive()) return;
-      }
-      await sleep(250);
-      if (!alive()) return;
-    }
-    input.textContent = 'Спросить Докки';
-    input.classList.remove('is-typing');
-    body.append(h('div', { class: 'dk-user', text: item.question }));
-
-    const steps = h('ul', { class: 'dk-steps' });
-    body.append(steps);
-    for (const text of item.steps) {
-      const li = h('li', {}, h('i', {}, h('span', { class: 'node__spin' })), text);
-      steps.append(li);
-      await sleep(650);
-      if (!alive()) return;
-      li.querySelector('i').replaceChildren(icon('check'));
-    }
-
-    const answer = h('p', { class: 'dk-answer' });
-    body.append(answer);
-    const words = item.answer.split(' ');
-    words.forEach((word, i) => {
-      answer.append(h('span', { class: 'wd', style: `animation-delay:${reduced.matches ? 0 : i * 32}ms`, text: word }), i < words.length - 1 ? ' ' : '');
-    });
-    await sleep(words.length * 32 + 200);
+    stage.replaceChildren(h('p', { class: 'convo__bubble', text: item.question }));
+    await sleep(reduced.matches ? 0 : 500);
     if (!alive()) return;
-    body.append(h('div', { class: 'dk-sources' }, item.sources.map(source => h('a', { href: source.href, text: source.label }))));
-    body.scrollTop = body.scrollHeight;
+
+    const answer = h('div', { class: 'convo__answer' },
+      h('p', { class: 'convo__who' }, h('img', { src: 'assets/brand/dokky-mark.png', alt: '', width: '22', height: '22' }), 'Докки'));
+    stage.append(answer);
+    for (const step of item.steps) {
+      const status = h('p', { class: 'convo__status' }, h('span', { class: 'convo__spinner', 'aria-hidden': 'true' }), step);
+      answer.append(status);
+      await sleep(reduced.matches ? 0 : 700);
+      if (!alive()) return;
+      status.remove();
+    }
+
+    const text = h('p', { class: 'convo__text' });
+    answer.append(text);
+    const words = item.answer.split(' ');
+    for (const [i, word] of words.entries()) {
+      text.append(h('span', { class: 'wc-word', text: word }), i < words.length - 1 ? ' ' : '');
+      if (!reduced.matches) await sleep(26);
+      if (!alive()) return;
+    }
+    await sleep(reduced.matches ? 0 : 300);
+    if (!alive()) return;
+    answer.append(h('p', { class: 'convo__src' }, item.sources.map(source => h('a', { href: source.href, text: source.label }))));
   };
 
-  onceVisible(document.querySelector('.phone'), () => { if (!token) ask(DOKKY_QUESTIONS[0].id); }, .55);
+  onceVisible(stage, () => { if (!token) ask(DOKKY_QUESTIONS[0].id); }, .5);
 }
 
 /* Докки App */
@@ -1141,12 +1191,12 @@ function initCopy() {
 }
 
 initNav();
+initDots();
 initReveal();
 initIntro();
 initGallery();
 initCounters();
 initStudio();
 initDokky();
-initPhone3d();
 initApp();
 initCopy();

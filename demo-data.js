@@ -181,22 +181,29 @@ export const DOKKY_QUESTIONS = Object.freeze([
   Object.freeze({
     id: 'prod',
     question: 'Что Иван запускал в production?',
-    steps: Object.freeze(['Ищу в резюме', 'Найден раздел «Опыт»']),
-    answer: 'В «Стороженко и партнеры» Иван был единственным IT-специалистом. Он спроектировал и запустил 5+ AI-агентов: чат-боты продаж, голосовые агенты, суммаризаторы. Сейчас это 600+ пользователей и 18 000+ вызовов AI в день.',
+    steps: Object.freeze(['Ищу в резюме']),
+    answer: 'В «Стороженко и партнеры» Иван был единственным IT-специалистом и запустил 5+ AI-агентов: чат-боты продаж, голосовые агенты, суммаризаторы и автоматизации. Это 600+ пользователей и 18 000+ вызовов AI в день.',
     sources: Object.freeze([Object.freeze({ label: 'Опыт', href: '#experience' }), Object.freeze({ label: 'Результаты', href: '#results' })])
   }),
   Object.freeze({
     id: 'impact',
     question: 'Какой эффект дали его боты?',
-    steps: Object.freeze(['Ищу в резюме', 'Найдены цифры по опыту']),
-    answer: 'Заявки и сообщения обрабатываются в 10 раз быстрее. Удержание в чате выросло в 3 раза, контакты оставляют в 2 раза чаще. Записей без участия человека стало до 7 в неделю вместо 1–2 с человеком.',
+    steps: Object.freeze(['Ищу цифры в резюме']),
+    answer: 'Заявки обрабатываются в 10 раз быстрее, удержание в чате выросло в 3 раза, контакты оставляют в 2 раза чаще. Закрытых записей без человека стало до 7 в неделю вместо 1-2 с человеком. Более 90% собеседников не поняли, что говорят с ботом.',
     sources: Object.freeze([Object.freeze({ label: 'Результаты', href: '#results' })])
+  }),
+  Object.freeze({
+    id: 'fit',
+    question: 'Почему он подходит на AI-инженера?',
+    steps: Object.freeze(['Сверяю опыт с ролью']),
+    answer: 'Он сам находил процессы для автоматизации, проектировал агентов, подключал CRM, телефонию и мессенджеры и отвечал за работу в production. Плюс свои продукты: Докки и конструктор агентов Докки Studio.',
+    sources: Object.freeze([Object.freeze({ label: 'Под роль', href: '#stack' }), Object.freeze({ label: 'Studio', href: '#studio' })])
   }),
   Object.freeze({
     id: 'stack',
     question: 'На чём он пишет?',
-    steps: Object.freeze(['Ищу в резюме', 'Найден раздел «Стек»']),
-    answer: 'Основа - Python и FastAPI, данные в PostgreSQL и Redis. Для AI — RAG, tool calling, собственная оркестрация, STT/TTS. Интерфейсы на React, запуск на Docker, Linux и Nginx.',
+    steps: Object.freeze(['Ищу раздел «Стек»']),
+    answer: 'Основа - Python и FastAPI, данные в PostgreSQL и Redis. Модели OpenAI, DeepSeek, YandexGPT и Ollama, RAG, tool calling и своя оркестрация. Интерфейсы на React и Telegram WebApp, запуск на Docker, Linux и Nginx.',
     sources: Object.freeze([Object.freeze({ label: 'Стек', href: '#stack' })])
   })
 ]);
